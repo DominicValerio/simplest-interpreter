@@ -24,7 +24,7 @@ pub enum Statement {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
-    None,
+    Nil,
     Bool(bool),
     Int(i32),
     Str(String),
@@ -35,14 +35,4 @@ pub enum Expression {
       args: Vec<Expression>,
     },
     BinOp(Box<Expression>, TokenKind, Box<Expression>), // left, op, right
-}
-
-impl Expression {
-    pub fn some(self) -> Option<Self> {
-        Some(self)
-    }
-
-    pub fn boxed(self) -> Box<Self> {
-        Box::new(self)
-    }
 }

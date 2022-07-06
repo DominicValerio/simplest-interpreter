@@ -1,3 +1,5 @@
+use std::{collections::HashMap};
+
 #[derive(PartialEq, Debug, Clone)]
 pub enum TokenKind {
     EOF, 
@@ -7,7 +9,7 @@ pub enum TokenKind {
 
     IntegerLiteral,
     StringLiteral,
-    NoneLiteral,
+    NilLiteral,
     TrueLiteral,
     FalseLiteral,
 
@@ -45,6 +47,20 @@ pub enum TokenKind {
     While,
 }
 
+#[inline]
+fn keywords() -> HashMap<String, TokenKind> {
+    use TokenKind::*;
+    [
+        ("var", Var),
+        ("fn", Fn),
+        ("while", While),
+        ("nil", NilLiteral),
+        ("true", TrueLiteral),
+        ("false", FalseLiteral),
+    ]
+    .into_iter().map(|(k, v)| (k.to_string(), v)).collect()
+}
+
 impl TokenKind {
     pub fn from_char(c: char) -> TokenKind {
         use TokenKind::*;
@@ -69,21 +85,6 @@ impl TokenKind {
                 dbg!(c);
                 unimplemented!()
             }
-        }
-    }
-
-    pub fn from_ident(text: &str) -> Option<TokenKind> {
-        use TokenKind::*;
-
-        match text {
-            "return" => Some(Return),
-            "fn" =>  Some(Fn),
-            "var" =>  Some(Var),
-            "while" =>  Some(While),
-            "None" =>  Some(NoneLiteral),
-            "true" => Some(TrueLiteral),
-            "false" => Some(FalseLiteral),
-            _=> None,
         }
     }
 }
@@ -114,8 +115,8 @@ impl TokenStream {
 
         // match keywords
         if tok.kind == Identifier {
-            if let Some(kind) = TokenKind::from_ident(tok.text.as_str()) {
-                tok.kind = kind;
+            if let Some(kind) = keywords().get(tok.text.as_str()) {
+                tok.kind = kind.clone();
             }
         }
 

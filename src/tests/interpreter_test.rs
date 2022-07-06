@@ -1,20 +1,15 @@
 use std::time::Instant;
 
-use crate::lexer::*;
-use crate::token::*;
-use crate::parser::*;
-use crate::interpreter::*;
-use crate::environment::*;
+use crate::{lexer::*, parser::*, interpreter::*, environment::*};
 
-use TokenKind::*;
-use crate::ast::*;
-
-use Expression::*;
 
 #[test]
 fn simple() {
   let src = r#"
-  print(y)
+  var x = 0
+  while x < 1000000 {
+    x = x + 1
+  }
   
   "#;
   let l = Lexer::new(src);
@@ -24,5 +19,7 @@ fn simple() {
   let res = p.parse().unwrap();
   //dbg!((&res));
   let mut i = Interpreter::new(res);
+  let instant = Instant::now();
   i.run().unwrap();
+  println!("{}s", instant.elapsed().as_secs_f64());
 }

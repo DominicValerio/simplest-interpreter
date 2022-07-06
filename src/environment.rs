@@ -1,12 +1,9 @@
-use crate::ast::*;
-use std::{fmt::Debug, fmt::Formatter};
-use crate::interpreter::Interpreter;
-use std::fmt::*;
-use std::fmt;
+use std::{fmt::Debug, fmt::Formatter, fmt::Display, fmt};
+use crate::{interpreter::Interpreter, ast::*};
 
 #[derive(Clone)]
 pub enum Value {
-  None,
+  Nil,
   Int(i32),
   Str(String),
   Bool(bool),
@@ -29,7 +26,7 @@ impl Value {
       Int(v) => v.to_string(),
       Bool(v) => v.to_string(),
       Str(v) => v.to_string(),
-      None => "None".to_string(),
+      Nil => "nil".to_string(),
       NativeFunction{ name, .. } => format!("<{}>", name),
       Function { name, params, ..} => format!("<{}>({})", name, params.into_iter().map(|p| p.clone()).collect::<Vec<String>>().join(", ")),
     }

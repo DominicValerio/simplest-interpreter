@@ -17,7 +17,7 @@ fn print(args: Vec<Value>, i: &mut Interpreter) -> Value {
   i.stdout.push_str(&output);
   print!("{}", output);
 
-  return Value::None;
+  return Value::Nil;
 }
 
 fn println(args: Vec<Value>, i: &mut Interpreter) -> Value {

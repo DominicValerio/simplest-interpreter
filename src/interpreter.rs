@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 use std::vec::IntoIter;
 
-use std::rc::Rc;
-use std::cell::Ref;
-
-use crate::token::*;
-use crate::ast::*;
-use crate::environment::*;
-use crate::stdlib;
+use crate::{
+  token::*, 
+  ast::*, 
+  environment::*, 
+  stdlib
+};
 
 type ReturnVal = Value;
 
@@ -29,7 +28,7 @@ impl Interpreter {
 
   pub fn run(&mut self) -> Result<(), String> {
     while let Some(statement) = self.ast.next() {
-      self.run_statement(statement.clone())?;
+      self.run_statement(statement)?;
     }
     Ok(())
   }
@@ -78,10 +77,10 @@ impl Interpreter {
       Expression::Bool(v) => Bool(v),
       // Binary Operation
       Expression::BinOp(left, op, right) => {
-        let left = self.run_expression(*left);
-        let right = self.run_expression(*right);
+        let left = self.run_expression(*left)?;
+        let right = self.run_expression(*right)?;
 
-        match (left.clone()?, &op, right.clone()?) {
+        match (&left, &op, &right) {
           (Int(l), Plus, Int(r)) => Int(l + r),
           (Int(l), Mul, Int(r)) =>  Int(l * r),
           (Int(l), Slash, Int(r)) =>   Int(l / r),
@@ -116,8 +115,8 @@ impl Interpreter {
           return Err(format!("Identifier {} does not exist", name));
         }
       }
-      Expression::None => {
-        Value::None
+      Expression::Nil => {
+        Value::Nil
       }
       Expression::Assign(name, value) => {
         self.run_assign(*name, *value)?
@@ -134,6 +133,7 @@ impl Interpreter {
           return Ok(retval);
         },
         Value::Function{params, body, ..} => {
+          //let params = params();
           if params.len() != args.len() {
             return Err(format!("Arguments of length {} don't match paramters of length {}", args.len(), params.len()));
           }
@@ -142,13 +142,13 @@ impl Interpreter {
             self.globals.insert(params[i].clone(), args[i].clone()); 
           }
 
-          for statement in *&body {
+          for statement in body.iter() {
             if let Some(retval) = self.run_statement(statement.clone())? {
               return Ok(retval);
             }
           }
 
-          return Ok(Value::None);
+          return Ok(Value::Nil);
         }
         _=> unreachable!(),
       }
@@ -170,7 +170,7 @@ impl Interpreter {
       match self.globals.get(name) {
         Some(_old_value) => {
           self.globals.insert(name.clone(), new_value);
-          return Ok(Value::None);
+          return Ok(Value::Nil);
         }
         None => {
           return Err(format!("Identifier {} isn't declared", name));
@@ -181,6 +181,3 @@ impl Interpreter {
     Err(format!("{:?} is not an identifier", name))
   }
 }
-
-
-

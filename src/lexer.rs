@@ -3,12 +3,14 @@ use TokenKind::*;
 
 #[derive(Debug)]
 pub struct Lexer {
-    text: String
+    text: String,
 }
 
 impl Lexer {
     pub fn new(input: &str) -> Lexer {
-        Lexer {text: input.to_string()}
+        Lexer {
+            text: input.to_string(),
+        }
     }
     
     pub fn parse(&self) -> Vec<Token> {

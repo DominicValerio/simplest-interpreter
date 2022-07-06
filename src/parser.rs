@@ -228,8 +228,8 @@ impl Parser {
       FalseLiteral => {
         Expression::Bool(false)
       },
-      NoneLiteral => {
-        Expression::None
+      NilLiteral => {
+        Expression::Nil
       }
       _=> {
         e_string!(format!("Expected an expression. Instead got {:?}", self.curtok.kind), self)
@@ -333,13 +333,13 @@ impl Precedence {
     use Precedence::*;
 
     match tok.kind {
+      Lparen => Call,
       Slash | Mul => Product,
       Plus | Minus => Sum,
-      Lparen => Call,
-      TokenKind::Assign => Assign,
       TokenKind::Equals | NotEquals => Equals,
       LessThan | GreaterThan 
       | LessEquals | GreaterEquals => LessThanGreaterThan,
+      TokenKind::Assign => Assign,
       Semicolon => Statement,
       _=> Iota
     }

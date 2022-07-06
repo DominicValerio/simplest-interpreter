@@ -5,7 +5,7 @@ fn main() {
   let filepath = match args().nth(1) {
     Some(v) => v,
     None => {
-        eprintln!("No argument of filepath provieded");
+        eprintln!("No argument of $filepath provided to binary file.");
         exit(1)
     }
   };
@@ -13,9 +13,8 @@ fn main() {
   let text = match std::fs::read_to_string(filepath.clone()) {
     Ok(v) => v,
     Err(v) => {
-        eprintln!("Inspected path: {}", filepath);
         eprintln!("{}", v);
-        std::process::exit(1);
+        exit(1);
     }
   };
 

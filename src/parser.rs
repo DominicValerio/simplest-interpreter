@@ -27,12 +27,9 @@ impl Parser {
   pub fn parse(&mut self) -> Result<Program, String> {
     let mut program: Program = vec![];
 
-    // while let Some(v) = self.next() {
-      
-    // }
     self.next();
     
-    while self.curtok.kind != EOF {
+    while !self.curtok_is(EOF) {
       match self.curtok.kind {
         Var => {
           program.push(self.parse_var()?);
@@ -70,7 +67,7 @@ impl Parser {
     if let Some(t) = self.iter.peek() {
       return Ok(t.clone());
     }
-    //e_string!("Parsed past EOF", self)
+
     self.error("Parsed past EOF")
   }
 
@@ -161,7 +158,6 @@ impl Parser {
     self.expect_kind(TokenKind::Assign)?;
     self.next();
     
-
     // parse expression
     let expr = self.parse_expression(Precedence::Iota)?;
 
@@ -243,8 +239,7 @@ impl Parser {
     self.next();
 
     while !self.curtok_is(TokenKind::EOF)
-    && precedence < Precedence::of_token(&self.curtok) 
-    {
+    && precedence < Precedence::of_token(&self.curtok) {
       if let Some(expression) = self.parse_postfix_expression(&left)? {
         left = expression;
       } else if let Some(expression) = self.parse_infix_expression(&left)? {

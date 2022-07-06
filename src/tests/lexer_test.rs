@@ -9,5 +9,4 @@ fn cols_linenums() {
     let res = l.parse();
     dbg!(&res);
     let it = res.iter();
-
 }

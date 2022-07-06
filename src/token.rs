@@ -106,7 +106,6 @@ impl TokenStream {
     }
 
     pub fn as_vec(&mut self) -> Vec<Token> {
-        let mut x = String::default();
         self.value.clone()
     }
 
@@ -162,8 +161,8 @@ impl Token {
         Token {
             kind: kind,
             text: text.to_string(),
-            ln: 1,
-            col: 1,
+            ln: ln,
+            col: col,
         }
     }
 }

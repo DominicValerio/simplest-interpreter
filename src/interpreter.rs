@@ -27,14 +27,13 @@ impl Interpreter {
   pub fn run(&mut self) {
     while let Some(statement) = self.ast.next() {
       self.run_statement(&statement.clone());
-      //dbg!(&self.globals);
     }
   }
 
   pub fn run_statement(&mut self, statement: &Statement) -> Option<ReturnVal> {
     match statement {
-      Statement::Expression(e) => {
-        self.run_expression(e);
+      Statement::Expression(expr) => {
+        self.run_expression(expr);
       }
       Statement::VarDeclaration{name, value} => {
         self.run_var(name, value); 
@@ -57,11 +56,11 @@ impl Interpreter {
           }
         }
       }
-      Statement::Return(e) => {
-        return Some(self.run_expression(e));
+      Statement::Return(expr) => {
+        return Some(self.run_expression(expr));
       }
     }
-    None
+    Option::None
   }
 
   pub fn run_expression(&mut self, expression: &Expression) -> Value {

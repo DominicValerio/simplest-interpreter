@@ -6,6 +6,7 @@ pub type Block = Vec<Statement>;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
     Return(Expression),
+    Expression(Expression),
     FunctionDeclaration {
         name: String,
         params: Vec<String>,
@@ -19,7 +20,6 @@ pub enum Statement {
         condition: Expression,
         body: Block,
     },
-    Expression(Expression),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -30,11 +30,11 @@ pub enum Expression {
     Str(String),
     Identifier(String),
     Assign(Box<Expression>, Box<Expression>),
-    BinOp(Box<Expression>, TokenKind, Box<Expression>), // left, op, right
     Call {
       name: String,
       args: Vec<Expression>,
     },
+    BinOp(Box<Expression>, TokenKind, Box<Expression>), // left, op, right
 }
 
 impl Expression {

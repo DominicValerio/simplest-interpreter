@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 use std::vec::IntoIter;
 
+use std::rc::Rc;
+use std::cell::Ref;
+
 use crate::token::*;
 use crate::ast::*;
 use crate::environment::*;
@@ -41,7 +44,7 @@ impl Interpreter {
       }
       Statement::FunctionDeclaration{name, params, body} => {
         self.globals.insert(name.clone(), Value::Function{
-          name: name.clone(), params: params.clone(),body: body.clone()
+          name: name.clone(), params: params.clone(), body: body.clone()
         });
       }
       Statement::While{condition, body} => {
@@ -98,7 +101,7 @@ impl Interpreter {
         }
       }
       Expression::Call{name, args} => {
-        let mut processed_args: Vec<Value> = Vec::new();
+        let mut processed_args = Vec::new();
 
         for arg in args.into_iter() {
             processed_args.push(self.run_expression(arg)?);
@@ -107,19 +110,17 @@ impl Interpreter {
         return self.run_function(&name, processed_args);
       }
       Expression::Identifier(name) => {
-        // TODO: wtf does this mean?
         if let Some(val) = self.globals.get(&name) {
           val.clone()
         } else {
-          unreachable!();
+          return Err(format!("Identifier {} does not exist", name));
         }
       }
       Expression::None => {
         Value::None
       }
       Expression::Assign(name, value) => {
-        self.run_assign(*name, *value)?;
-        Value::None
+        self.run_assign(*name, *value)?
       }
     };
     return Ok(res);
@@ -140,8 +141,6 @@ impl Interpreter {
           for i in 0..params.len() {
             self.globals.insert(params[i].clone(), args[i].clone()); 
           }
-
-          //dbg!(&self.globals)
 
           for statement in *&body {
             if let Some(retval) = self.run_statement(statement.clone())? {
@@ -168,13 +167,18 @@ impl Interpreter {
     let new_value = self.run_expression(value)?;
 
     if let Expression::Identifier(name) = &name {
-      if let Some(_old_value) = self.globals.get(name) {
-        self.globals.insert(name.clone(), new_value);
-        return Ok(Value::None);
-      } 
+      match self.globals.get(name) {
+        Some(_old_value) => {
+          self.globals.insert(name.clone(), new_value);
+          return Ok(Value::None);
+        }
+        None => {
+          return Err(format!("Identifier {} isn't declared", name));
+        }
+      }
     }
 
-    Err(format!("{:?} doesn't exist", name))
+    Err(format!("{:?} is not an identifier", name))
   }
 }
 

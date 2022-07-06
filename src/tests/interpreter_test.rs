@@ -14,17 +14,15 @@ use Expression::*;
 #[test]
 fn simple() {
   let src = r#"
-  let x = fn foo() {
-    print("hello world")
-  }
-  x()
+  print(y)
+  
   "#;
   let l = Lexer::new(src);
   let toks = l.parse();
   //dbg!(&toks);
   let mut p = Parser::new(l.parse());
   let res = p.parse().unwrap();
-  dbg!((&res));
+  //dbg!((&res));
   let mut i = Interpreter::new(res);
-  i.run();
+  i.run().unwrap();
 }

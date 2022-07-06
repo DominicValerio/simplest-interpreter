@@ -1,4 +1,4 @@
-//#![allow(warnings)] 
+#![allow(warnings)] 
 mod ast;
 mod stdlib;
 mod token;

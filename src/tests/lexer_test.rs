@@ -1,4 +1,4 @@
-use crate::{lexer::*};
+use crate::lexer::*;
 
 #[test]
 fn cols_linenums() {

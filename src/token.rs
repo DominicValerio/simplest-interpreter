@@ -1,13 +1,13 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum TokenKind {
-    EOF, 
+    EOF,
     Whitespace,
     Identifier,
-    Comment,     
+    Comment,
 
-    IntegerLiteral,
+    NumberegerLiteral,
     StringLiteral,
     NilLiteral,
     TrueLiteral,
@@ -58,7 +58,9 @@ fn keywords() -> HashMap<String, TokenKind> {
         ("true", TrueLiteral),
         ("false", FalseLiteral),
     ]
-    .into_iter().map(|(k, v)| (k.to_string(), v)).collect()
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect()
 }
 
 impl TokenKind {
@@ -81,7 +83,7 @@ impl TokenKind {
             '{' => Lbrace,
             '!' => Bang,
             '#' => Comment,
-            _=> {
+            _ => {
                 dbg!(c);
                 unimplemented!()
             }
@@ -127,7 +129,7 @@ impl TokenStream {
         }
 
         tok.clear();
-    } 
+    }
 }
 
 impl Token {
@@ -146,7 +148,7 @@ impl Token {
             '\n' => {
                 self.ln += 1;
                 self.col = 1;
-            },
+            }
             '\r' => self.col = 1,
             '\t' => self.col += 4,
             _ => self.col += 1,

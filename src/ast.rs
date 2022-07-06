@@ -26,13 +26,10 @@ pub enum Statement {
 pub enum Expression {
     Nil,
     Bool(bool),
-    Int(i32),
+    Number(f64),
     Str(String),
     Identifier(String),
     Assign(Box<Expression>, Box<Expression>),
-    Call {
-      name: String,
-      args: Vec<Expression>,
-    },
+    Call { name: String, args: Vec<Expression> },
     BinOp(Box<Expression>, TokenKind, Box<Expression>), // left, op, right
 }

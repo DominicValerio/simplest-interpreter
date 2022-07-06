@@ -1,39 +1,35 @@
-use crate::interpreter::Interpreter;
+use crate::environment::{Value, NativeFunctionCallback};
 use std::collections::HashMap;
-use crate::environment::Value;
 
+#[allow(non_upper_case_globals)]
+const print: NativeFunctionCallback = |args, i| {
+    let mut output = String::default();
+    for v in args.into_iter() {
+        output.push_str(&format!("{}", v).to_string());
+    }
+    i.stdout.push_str(&output);
+    print!("{}", output);
 
-macro_rules! register {
-  ($name_str: expr, $callback: ident, $map: ident) => {
-    $map.insert($name_str.to_string(), Value::NativeFunction{name: $name_str.to_string(), callback: $callback});
-  };
-}
+    return Value::Nil;
+};
 
-fn print(args: Vec<Value>, i: &mut Interpreter) -> Value {
-  let mut output = String::default();
-  for v in args.into_iter() {
-    output.push_str(&format!("{}", v).to_string());
-  }
-  i.stdout.push_str(&output);
-  print!("{}", output);
-
-  return Value::Nil;
-}
-
-fn println(args: Vec<Value>, i: &mut Interpreter) -> Value {
-  let mut args = args.clone();
-  args.push(Value::Str("\n".to_string()));
-  return print(args, i);
-}
+#[allow(non_upper_case_globals)]
+const println: NativeFunctionCallback = |args, i| {
+    let mut args = args.clone();
+    args.push(Value::Str("\n".to_string()));
+    return print(args, i);
+};
 
 pub fn get_lib() -> HashMap<String, Value> {
-  let mut map = HashMap::new();
-  
-  register!("print", print, map);
-  register!("println", println, map);
-
-  return map;
+    [
+        ("print", print),
+        ("println", println),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), Value::NativeFunction {
+        name: k.to_string(),
+        callback: v,
+    }))
+    .collect()
+   
 }
-
-  
-

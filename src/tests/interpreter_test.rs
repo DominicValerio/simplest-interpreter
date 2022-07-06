@@ -13,7 +13,7 @@ use Expression::*;
 
 #[test]
 fn simple() {
-  let src = r#"print()"#;
+  let src = r#"print(10)"#;
   let l = Lexer::new(src);
   let toks = l.parse();
   //dbg!(&toks);

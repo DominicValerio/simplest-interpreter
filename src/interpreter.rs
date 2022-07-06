@@ -51,7 +51,7 @@ impl Interpreter {
               break; 
             }
 
-            for statement in body.iter() {
+            for statement in &body {
               self.run_statement(statement.clone())?;
             }
           }
@@ -143,7 +143,7 @@ impl Interpreter {
 
           //dbg!(&self.globals)
 
-          for statement in body.iter() {
+          for statement in *&body {
             if let Some(retval) = self.run_statement(statement.clone())? {
               return Ok(retval);
             }

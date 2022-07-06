@@ -7,11 +7,13 @@ pub enum TokenKind {
     Identifier,
     Comment,
 
-    NumberegerLiteral,
+    IntegerLiteral,
+    FloatLiteral,
     StringLiteral,
     NilLiteral,
     TrueLiteral,
     FalseLiteral,
+    //PotentialFloat,
 
     //// All operators
     Assign,
@@ -39,6 +41,7 @@ pub enum TokenKind {
     // puncuation
     Comma,
     Semicolon,
+    Dot,
 
     // Keywords
     Return,
@@ -83,6 +86,7 @@ impl TokenKind {
             '{' => Lbrace,
             '!' => Bang,
             '#' => Comment,
+            '.' => Dot,
             _ => {
                 dbg!(c);
                 unimplemented!()

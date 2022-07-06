@@ -22,8 +22,12 @@ impl Lexer {
                 // numbers
                 '0'..='9' => match curtok.kind {
                     Whitespace => {
-                        curtok.kind = NumberegerLiteral;
+                        curtok.kind = IntegerLiteral;
                         curtok.push_char(ch);
+                    }
+                    Dot => {
+                        curtok.kind = FloatLiteral;
+                        curtok.text.push(ch);
                     }
                     _ => curtok.push_char(ch),
                 },
@@ -77,7 +81,27 @@ impl Lexer {
                 },
                 // Division Operator
                 '/' => {
+                    match curtok.kind {
+                        StringLiteral | Comment => curtok.push_char(ch),
+                        _ => {
+                            list.push(&mut curtok);
+                            curtok.kind = Slash;
+                        }
+                    }
                     curtok.push_char(ch);
+                }
+                '.' => {
+                    match curtok.kind {
+                        StringLiteral | Comment => curtok.push_char(ch),
+                        IntegerLiteral => {
+                            curtok.kind = FloatLiteral;
+                            curtok.push_char(ch);
+                        }
+                        _ => {
+                            list.push(&mut curtok);
+                            curtok.kind = Dot;
+                        }
+                    }
                 }
                 // Whitespace
                 ' ' => match curtok.kind {
@@ -127,7 +151,7 @@ impl Lexer {
                     }
                 },
                 _ => match curtok.kind {
-                    Whitespace | NumberegerLiteral => {
+                    Whitespace | IntegerLiteral | FloatLiteral => {
                         list.push(&mut curtok);
                         curtok.kind = Identifier;
                         curtok.push_char(ch);

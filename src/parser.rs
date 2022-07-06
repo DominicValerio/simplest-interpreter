@@ -225,7 +225,7 @@ impl Parser {
     */
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
         let mut left = match self.curtok.kind {
-            NumberegerLiteral => {
+            IntegerLiteral | FloatLiteral => {
                 let clone = self.curtok.clone();
                 Expression::Number(clone.text.parse().unwrap())
             }

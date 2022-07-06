@@ -5,11 +5,8 @@ use crate::{interpreter::*, lexer::*, parser::*};
 #[test]
 fn simple() {
     let src = r#"
-  var x = 0
-  while x < 1000000 {
-    x = x + 1
-  }
-  print(x)
+  var x = 10.3 / 4
+  println(x)
   "#;
     let l = Lexer::new(src);
     let toks = l.parse();

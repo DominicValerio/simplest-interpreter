@@ -1,4 +1,4 @@
-#![allow(warnings)]
+//#![allow(warnings)]
 pub(crate) mod ast;
 pub(crate) mod environment;
 pub(crate) mod stdlib;

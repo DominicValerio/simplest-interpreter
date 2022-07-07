@@ -1,9 +1,6 @@
-use std::collections::HashMap;
-use std::vec::IntoIter;
+use std::{collections::HashMap, vec::IntoIter};
 
 use crate::{ast::*, environment::Value::*, environment::*, stdlib, token::TokenKind::*};
-
-type ReturnVal = Value;
 
 #[derive(Debug, Clone)]
 pub struct Interpreter {
@@ -28,7 +25,7 @@ impl Interpreter {
         Ok(())
     }
 
-    pub fn run_statement(&mut self, statement: Statement) -> Result<Option<ReturnVal>, String> {
+    pub fn run_statement(&mut self, statement: Statement) -> Result<Option<Value>, String> {
         match statement {
             Statement::Expression(expr) => {
                 self.run_expression(expr)?;
@@ -39,11 +36,11 @@ impl Interpreter {
             Statement::FunctionDeclaration { name, params, body } => {
                 self.globals.insert(
                     name.clone(),
-                    Value::Function {
+                    Value::Function(Box::from(FunctionDef {
                         name: name.clone(),
                         params: params.clone(),
                         body: body.clone(),
-                    },
+                    })),
                 );
             }
             Statement::While { condition, body } => loop {
@@ -67,8 +64,8 @@ impl Interpreter {
     pub fn run_expression(&mut self, expression: Expression) -> Result<Value, String> {
         let res = match expression {
             // Literals
-            Expression::Number(v) => Number(v),
-            Expression::Str(v) => Str(v.clone()),
+            Expression::Number(v) => Number(Box::from(v)),
+            Expression::Str(v) => Str(v),
             Expression::Bool(v) => Bool(v),
             // Binary Operation
             Expression::BinOp(left, op, right) => {
@@ -76,11 +73,11 @@ impl Interpreter {
                 let right = self.run_expression(*right)?;
 
                 match (&left, &op, &right) {
-                    (Number(l), Plus, Number(r)) => Number(l + r),
-                    (Number(l), Mul, Number(r)) => Number(l * r),
-                    (Number(l), Slash, Number(r)) => Number(l / r),
-                    (Number(l), Minus, Number(r)) => Number(l - r),
-                    (Number(l), Equals, Number(r)) => Bool(l == r),
+                    (Number(l), Plus, Number(r)) => Number(Box::from(**l + **r)),
+                    (Number(l), Mul, Number(r)) => Number(Box::from(**l * **r)),
+                    (Number(l), Slash, Number(r)) => Number(Box::from(**l / **r)),
+                    (Number(l), Minus, Number(r)) => Number(Box::from(**l + **r)),
+                    (Number(l), Equals, Number(r)) => Bool(*l == *r),
                     (Number(l), NotEquals, Number(r)) => Bool(l != r),
                     (Number(l), LessThan, Number(r)) => Bool(l < r),
                     (Number(l), GreaterThan, Number(r)) => Bool(l > r),
@@ -123,24 +120,27 @@ impl Interpreter {
         if self.globals.contains_key(name) {
             let v = self.globals[name].clone();
             match v {
-                Value::NativeFunction { callback, .. } => {
-                    let retval = callback(args, self);
+                Value::NativeFunction(f) => {
+                    if args.len() < 1 { 
+                        return Err(format!("No arguments provided to function {name}"));
+                    }
+                    let retval = (f.callback)(args, self);
                     return Ok(retval);
                 }
-                Value::Function { params, body, .. } => {
-                    if params.len() != args.len() {
+                Value::Function(f) => {
+                    if f.params.len() != args.len() {
                         return Err(format!(
                             "Arguments of length {} don't match paramters of length {}",
                             args.len(),
-                            params.len()
+                            f.params.len()
                         ));
                     }
 
-                    for i in 0..params.len() {
-                        self.globals.insert(params[i].clone(), args[i].clone());
+                    for i in 0..f.params.len() {
+                        self.globals.insert(f.params[i].clone(), args[i].clone());
                     }
 
-                    for statement in body.iter() {
+                    for statement in f.body.iter() {
                         if let Some(retval) = self.run_statement(statement.clone())? {
                             return Ok(retval);
                         }

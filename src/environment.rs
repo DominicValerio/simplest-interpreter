@@ -4,20 +4,25 @@ use std::{fmt, fmt::Debug, fmt::Display, fmt::Formatter};
 pub type NativeFunctionCallback = fn(Vec<Value>, &mut Interpreter) -> Value;
 
 #[derive(Clone)]
+pub struct FunctionDef {
+    pub name: String,
+    pub params: Vec<String>,
+    pub body: Vec<Statement>,
+}
+#[derive(Clone)]
+pub struct NativeFunctionDef {
+    pub name: String,
+    pub callback: NativeFunctionCallback,
+}
+
+#[derive(Clone)]
 pub enum Value {
     Nil,
-    Number(f64),
-    Str(String),
     Bool(bool),
-    Function {
-        name: String,
-        params: Vec<String>,
-        body: Vec<Statement>,
-    },
-    NativeFunction {
-        name: String,
-        callback: NativeFunctionCallback,
-    },
+    Str(String),
+    Number(Box<f64>),
+    Function(Box<FunctionDef>),
+    NativeFunction(Box<NativeFunctionDef>),
 }
 
 impl Value {
@@ -25,15 +30,16 @@ impl Value {
         use Value::*;
 
         match self {
-            Number(v) => v.to_string(),
+            Number(v) => format!("{}", v),
             Bool(v) => v.to_string(),
             Str(v) => v.to_string(),
             Nil => "nil".to_string(),
-            NativeFunction { name, .. } => format!("<{}>", name),
-            Function { name, params, .. } => format!(
+            NativeFunction(f) => format!("<{}>", f.name),
+            Function(f) => format!(
                 "<{}>({})",
-                name,
-                params
+                f.name,
+                f.params
+                    .clone()
                     .into_iter()
                     .map(|p| p.clone())
                     .collect::<Vec<String>>()
@@ -44,13 +50,13 @@ impl Value {
 }
 
 impl Debug for Value {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{}", self.to_string())
     }
 }
 
 impl Display for Value {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{}", self.to_string())
     }
 }

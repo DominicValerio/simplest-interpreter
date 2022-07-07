@@ -1,12 +1,18 @@
-use std::{time::Instant, mem, cell::RefMut};
+use std::{cell::RefMut, mem, time::Instant};
 
-use crate::{interpreter::*, lexer::*, parser::*, environment::Value};
+use crate::{environment::Value, interpreter::*, lexer::*, parser::*};
 
 #[test]
 fn simple() {
     let src = r#"
-  var x = 10.3 / 4
-  println(x)
+    var x = 10
+    println(size_of(x))
+    var y = true
+    println(size_of(y))
+    var z = nil
+    println(size_of())
+    var s = "bobbbbbbbbbbbbbbbbbbbb"
+    println(size_of(s))
   "#;
     let l = Lexer::new(src);
     let toks = l.parse();
@@ -18,39 +24,4 @@ fn simple() {
     let instant = Instant::now();
     i.run().unwrap();
     println!("{}s", instant.elapsed().as_secs_f64());
-}
-
-struct Function {
-  name: String,
-  params: Vec<String>,
-  body: Vec<String>,
-}
-
-struct NativeFunction {
-  name: String,
-  callback: fn(i32) -> i32,
-}
-enum Test {
-  Nil,
-  Number(f64),
-  Str(String),
-  Bool(bool),
-  Function(Function),
-  NativeFunction(Box<NativeFunction>),
-}
-
-#[test]
-fn mem() {
-  use mem::*;
-
-  let x = &999999999;
-
-  dbg!(mem::size_of_val(&*x));
-
-  dbg!(mem::align_of::<Test>());
-  dbg!(mem::size_of::<Test>()); 
-  let inner = Function {name: "sdf".to_string(), params: vec![], body: vec![]};
-  dbg!(mem::size_of_val(&inner));
-  let x  = Test::Function(inner);
-  dbg!(mem::size_of_val(&x));
 }

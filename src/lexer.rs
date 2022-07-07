@@ -90,6 +90,7 @@ impl Lexer {
                     }
                     curtok.push_char(ch);
                 }
+                // Dot
                 '.' => match curtok.kind {
                     StringLiteral | Comment => curtok.push_char(ch),
                     IntegerLiteral => {

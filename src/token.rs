@@ -13,7 +13,12 @@ pub enum TokenKind {
     NilLiteral,
     TrueLiteral,
     FalseLiteral,
-    //PotentialFloat,
+    
+    // Keywords
+    Return,
+    Var,
+    Fn,
+    While,
 
     //// All operators
     Assign,
@@ -42,12 +47,6 @@ pub enum TokenKind {
     Comma,
     Semicolon,
     Dot,
-
-    // Keywords
-    Return,
-    Var,
-    Fn,
-    While,
 }
 
 #[inline]

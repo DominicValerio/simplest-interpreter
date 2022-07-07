@@ -1,4 +1,4 @@
-use crate::environment::{Value, NativeFunctionCallback};
+use crate::environment::{NativeFunctionCallback, Value};
 use std::collections::HashMap;
 
 #[allow(non_upper_case_globals)]
@@ -21,15 +21,16 @@ const println: NativeFunctionCallback = |args, i| {
 };
 
 pub fn get_lib() -> HashMap<String, Value> {
-    [
-        ("print", print),
-        ("println", println),
-    ]
-    .into_iter()
-    .map(|(k, v)| (k.to_string(), Value::NativeFunction {
-        name: k.to_string(),
-        callback: v,
-    }))
-    .collect()
-   
+    [("print", print), ("println", println)]
+        .into_iter()
+        .map(|(k, v)| {
+            (
+                k.to_string(),
+                Value::NativeFunction {
+                    name: k.to_string(),
+                    callback: v,
+                },
+            )
+        })
+        .collect()
 }

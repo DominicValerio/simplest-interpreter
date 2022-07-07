@@ -21,7 +21,7 @@ pub enum Value {
 }
 
 impl Value {
-    pub (self) fn to_string(&self) -> String {
+    pub(self) fn to_string(&self) -> String {
         use Value::*;
 
         match self {

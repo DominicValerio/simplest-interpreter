@@ -1,4 +1,4 @@
-#![allow(warnings)]
+//#![allow(warnings)]
 use lib::{interpreter::*, lexer::*, parser::*};
 use std::{env::args, process::exit};
 

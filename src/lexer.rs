@@ -90,19 +90,17 @@ impl Lexer {
                     }
                     curtok.push_char(ch);
                 }
-                '.' => {
-                    match curtok.kind {
-                        StringLiteral | Comment => curtok.push_char(ch),
-                        IntegerLiteral => {
-                            curtok.kind = FloatLiteral;
-                            curtok.push_char(ch);
-                        }
-                        _ => {
-                            list.push(&mut curtok);
-                            curtok.kind = Dot;
-                        }
+                '.' => match curtok.kind {
+                    StringLiteral | Comment => curtok.push_char(ch),
+                    IntegerLiteral => {
+                        curtok.kind = FloatLiteral;
+                        curtok.push_char(ch);
                     }
-                }
+                    _ => {
+                        list.push(&mut curtok);
+                        curtok.kind = Dot;
+                    }
+                },
                 // Whitespace
                 ' ' => match curtok.kind {
                     Comment | StringLiteral => {

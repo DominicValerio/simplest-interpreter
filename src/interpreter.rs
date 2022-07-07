@@ -1,7 +1,7 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 use std::vec::IntoIter;
 
-use crate::{ast::*, environment::*, stdlib, token::*};
+use crate::{ast::*, environment::Value::*, environment::*, stdlib, token::TokenKind::*};
 
 type ReturnVal = Value;
 
@@ -65,9 +65,6 @@ impl Interpreter {
     }
 
     pub fn run_expression(&mut self, expression: Expression) -> Result<Value, String> {
-        use TokenKind::*;
-        use Value::*;
-
         let res = match expression {
             // Literals
             Expression::Number(v) => Number(v),
@@ -123,7 +120,7 @@ impl Interpreter {
     }
 
     fn run_function(&mut self, name: &String, args: Vec<Value>) -> Result<Value, String> {
-        if  self.globals.contains_key(name) {
+        if self.globals.contains_key(name) {
             let v = self.globals[name].clone();
             match v {
                 Value::NativeFunction { callback, .. } => {
@@ -151,9 +148,7 @@ impl Interpreter {
 
                     return Ok(Value::Nil);
                 }
-                _ => {
-                    Err(format!("{} is not a function", name))
-                }
+                _ => Err(format!("{} is not a function", name)),
             }
         } else {
             Err(format!("{} is not defined", name))

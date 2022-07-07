@@ -1,6 +1,6 @@
-use std::{collections::HashMap, vec::IntoIter, ops::Div};
+use std::{vec::IntoIter};
 
-use crate::{ast::*, object::*, object::Object::*, environment::Environment, stdlib::{self, get_lib}, token::TokenKind::*};
+use crate::{ast::*, object::*, object::Object::*, environment::Environment, stdlib, token::TokenKind::*};
 
 #[derive(Debug, Clone)]
 pub struct Interpreter {
@@ -13,7 +13,7 @@ impl Interpreter {
     pub fn new(ast: Program) -> Self {
         Self {
             ast: ast.into_iter(),
-            env: Environment::from(get_lib()),
+            env: Environment::from(stdlib::get_lib()),
             stdout: String::new(),
         }
     }

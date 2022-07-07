@@ -59,6 +59,7 @@ fn keywords() -> HashMap<String, TokenKind> {
         ("nil", NilLiteral),
         ("true", TrueLiteral),
         ("false", FalseLiteral),
+        ("return", Return),
     ]
     .into_iter()
     .map(|(k, v)| (k.to_string(), v))

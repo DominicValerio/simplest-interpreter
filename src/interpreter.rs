@@ -25,7 +25,7 @@ impl Interpreter {
         Ok(())
     }
 
-    pub fn run_statement(&mut self, statement: Statement) -> Result<Option<Object>, String> {
+    fn run_statement(&mut self, statement: Statement) -> Result<Option<Object>, String> {
         match statement {
             Statement::Expression(expr) => {
                 self.run_expression(expr)?;
@@ -43,14 +43,22 @@ impl Interpreter {
                     })),
                 );
             }
-            Statement::While { condition, body } => loop {
-                if let Object::Bool(cond) = self.run_expression(condition.clone())? {
-                    if cond == false {
-                       break;
-                    }
-
-                    for statement in &body {
-                        self.run_statement(statement.clone())?;
+            Statement::While { condition, body } => {
+                self.env.encase();
+                loop {
+                    if let Object::Bool(cond) = self.run_expression(condition.clone())? {
+                        if cond == false {
+                            self.env.uncover();
+                            return Ok(Option::None);
+                        }
+    
+                        if let Some(retval) = self.run_body(body.clone())? {
+                            self.env.uncover();
+                            return Ok(Some(retval));
+                        }
+    
+                    } else {
+                        return Err("Expression after while isn't a boolean".to_string());
                     }
                 }
             },
@@ -61,7 +69,16 @@ impl Interpreter {
         Ok(Option::None)
     }
 
-    pub fn run_expression(&mut self, expression: Expression) -> Result<Object, String> {
+    fn run_body(&mut self, block: Vec<Statement>) -> Result<Option<Object>, String> {
+        for v in block.into_iter() {
+            if let Some(retval) = self.run_statement(v)? {
+                return Ok(Some(retval));
+            }
+        }
+        Ok(None)
+    }
+
+    fn run_expression(&mut self, expression: Expression) -> Result<Object, String> {
         let res = match expression {
             // Literals
             Expression::Number(v) => Number(v),
@@ -127,17 +144,28 @@ impl Interpreter {
                         ));
                     }
 
+                    //dbg!(&self.env);
+                   // let old_env = self.env.clone();
+                    self.env.encase();
+                    //dbg!(&self.env);
+
                     for i in 0..f.params.len() {
                         self.env.insert(f.params[i].clone(), args[i].clone());
                     }
 
-                    for statement in f.body.iter() {
-                        if let Some(retval) = self.run_statement(statement.clone())? {
-                            return Ok(retval);
-                        }
+                    let mut retval = Object::Nil;
+
+                    if let Some(_retval) = self.run_body(f.body)? {
+                        retval = _retval;
                     }
 
-                    return Ok(Object::Nil);
+                    self.env.uncover();
+                    //self.env = old_env;
+                    //self.env.uncover();
+                    //dbg!(&self.env);
+
+
+                    return Ok(retval);
                 }
                 _ => Err(format!("{} is not a function", name)),
             }

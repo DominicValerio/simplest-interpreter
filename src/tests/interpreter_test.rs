@@ -1,18 +1,15 @@
 use std::{cell::RefMut, mem, time::Instant};
 
-use crate::{environment::Value, interpreter::*, lexer::*, parser::*};
+use crate::{interpreter::*, lexer::*, parser::*};
 
 #[test]
 fn simple() {
     let src = r#"
     var x = 10
-    println(size_of(x))
-    var y = true
-    println(size_of(y))
-    var z = nil
-    println(size_of())
-    var s = "bobbbbbbbbbbbbbbbbbbbb"
-    println(size_of(s))
+    while x < 1000 {
+      x = x + 1
+    }
+    println(x)
   "#;
     let l = Lexer::new(src);
     let toks = l.parse();

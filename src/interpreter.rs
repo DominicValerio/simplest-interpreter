@@ -6,13 +6,13 @@ use crate::{ast::*, environment::*, stdlib, token::*};
 type ReturnVal = Value;
 
 #[derive(Debug, Clone)]
-pub struct Numbererpreter {
+pub struct Interpreter {
     ast: IntoIter<Statement>,
     pub globals: HashMap<String, Value>,
     pub stdout: String,
 }
 
-impl Numbererpreter {
+impl Interpreter {
     pub fn new(ast: Program) -> Self {
         Self {
             ast: ast.into_iter(),
@@ -107,7 +107,7 @@ impl Numbererpreter {
                     processed_args.push(self.run_expression(arg)?);
                 }
 
-                return self.run_function(&name, processed_args);
+                self.run_function(&name, processed_args)?
             }
             Expression::Identifier(name) => {
                 if let Some(val) = self.globals.get(&name) {

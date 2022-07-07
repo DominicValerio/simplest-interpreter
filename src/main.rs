@@ -32,7 +32,7 @@ fn main() {
             exit(1);
         }
     }
-    let res = Numbererpreter::new(ast).run();
+    let res = Interpreter::new(ast).run();
 
     if let Err(e) = res {
         eprintln!("{}", e);

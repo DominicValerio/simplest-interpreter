@@ -1,7 +1,7 @@
-use crate::{ast::*, interpreter::Numbererpreter};
+use crate::{ast::*, interpreter::Interpreter};
 use std::{fmt, fmt::Debug, fmt::Display, fmt::Formatter};
 
-pub type NativeFunctionCallback = fn(Vec<Value>, &mut Numbererpreter) -> Value;
+pub type NativeFunctionCallback = fn(Vec<Value>, &mut Interpreter) -> Value;
 
 #[derive(Clone)]
 pub enum Value {
@@ -21,7 +21,7 @@ pub enum Value {
 }
 
 impl Value {
-    pub(self) fn to_string(&self) -> String {
+    pub (self) fn to_string(&self) -> String {
         use Value::*;
 
         match self {

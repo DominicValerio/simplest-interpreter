@@ -3,7 +3,7 @@ use crate::token::TokenKind;
 pub type Program = Vec<Statement>;
 pub type Block = Vec<Statement>;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Statement {
     Return(Expression),
     Expression(Expression),
@@ -22,7 +22,7 @@ pub enum Statement {
     },
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Expression {
     Nil,
     Bool(bool),

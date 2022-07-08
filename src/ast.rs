@@ -24,7 +24,6 @@ pub enum Statement {
 
 #[derive(Debug, Clone)]
 pub enum Expression {
-    Nil,
     Bool(bool),
     Number(f64),
     Str(String),

@@ -4,15 +4,15 @@ use std::collections::HashMap;
 pub enum TokenKind {
     EOF,
     Whitespace,
-    Identifier,
-    Comment,
 
-    IntegerLiteral,
-    FloatLiteral,
-    StringLiteral,
-    NilLiteral,
-    TrueLiteral,
-    FalseLiteral,
+    // Literals
+    Identifier,
+    Integer,
+    Float,
+    String,
+    True,
+    False,
+    Comment,
     
     // Keywords
     Return,
@@ -28,6 +28,8 @@ pub enum TokenKind {
     Minus,
     Mul,
     Slash,
+    Star,
+
     // boolean
     Equals,
     NotEquals,
@@ -49,16 +51,14 @@ pub enum TokenKind {
     Dot,
 }
 
-#[inline]
 fn keywords() -> HashMap<String, TokenKind> {
     use TokenKind::*;
     [
         ("var", Var),
         ("fn", Fn),
         ("while", While),
-        ("nil", NilLiteral),
-        ("true", TrueLiteral),
-        ("false", FalseLiteral),
+        ("true", True),
+        ("false", False),
         ("return", Return),
     ]
     .into_iter()
@@ -74,7 +74,7 @@ impl TokenKind {
             '+' => Plus,
             '-' => Minus,
             '/' => Slash,
-            '*' => Mul,
+            '*' => Star,
             '=' => Assign,
             '(' => Lparen,
             ')' => Rparen,
@@ -162,14 +162,5 @@ impl Token {
     pub fn clear(&mut self) {
         self.kind = TokenKind::Whitespace;
         self.text.clear();
-    }
-
-    pub fn alt(self, text: &str, kind: TokenKind, ln: usize, col: usize) -> Token {
-        Token {
-            kind: kind,
-            text: text.to_string(),
-            ln: ln,
-            col: col,
-        }
     }
 }

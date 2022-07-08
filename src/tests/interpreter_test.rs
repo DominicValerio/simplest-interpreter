@@ -3,23 +3,20 @@ use std::{cell::RefMut, mem, time::Instant};
 use crate::{interpreter::*, lexer::*, parser::*};
 
 #[test]
-fn simple() {
+fn scope() {
     let src = r#"
-    var x = 1
-    var z = 1
-    fn foo(x, y) {
-      var y = 3
-      println(x)
-      println(z)
-    }
-
-    foo(3, 1)
-
     var x = 0
-    while x < 1000000 {
+    var i = 0
+    while x < 100 {
       x = x + 1
+      var c = true
+      c = false
+      while c == false {
+        c = true
+        i = i + 1
+      }
     }
-    println(x)
+    println(i)
   "#;
     let l = Lexer::new(src);
     let toks = l.parse();
@@ -32,5 +29,6 @@ fn simple() {
     i.run().unwrap();
     //dbg!(&i.env);
 
-    println!("{}s", instant.elapsed().as_secs_f64());
+    let time = instant.elapsed().as_secs_f64();
+    assert_eq!(i.stdout, "100\n".to_string())
 }

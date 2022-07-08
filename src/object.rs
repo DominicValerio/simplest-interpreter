@@ -15,20 +15,20 @@ pub struct NativeFunctionDef {
     pub callback: NativeFunctionCallback,
 }
 
-impl Debug for NativeFunctionDef {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", self.name)
-    }
-}
-
 #[derive(Clone, Debug)]
 pub enum Object {
-  Nil,
+  Unit,
   Bool(bool),
   Str(String),
   Number(f64),
   Function(Box<FunctionDef>),
   NativeFunction(Box<NativeFunctionDef>),
+}
+
+impl Debug for NativeFunctionDef {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+      write!(f, "{}", self.name)
+  }
 }
 
 impl Display for Object {

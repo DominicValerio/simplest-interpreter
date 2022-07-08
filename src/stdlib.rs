@@ -10,7 +10,7 @@ const print: NativeFunctionCallback = |args, i| {
     i.stdout.push_str(&output);
     print!("{}", output);
 
-    return Object::Nil;
+    return Object::Unit;
 };
 
 #[allow(non_upper_case_globals)]

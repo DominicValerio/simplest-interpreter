@@ -3,7 +3,7 @@ use std::vec::IntoIter;
 
 use crate::ast::*;
 use crate::token::*;
-use TokenKind::*;
+use TokenKind as tk;
 
 pub struct Parser {
     curtok: Token,
@@ -28,6 +28,7 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Program, String> {
+        use tk::*;
         let mut program: Program = vec![];
 
         self.next();
@@ -199,6 +200,7 @@ impl Parser {
     }
 
     fn parse_statement(&mut self) -> Result<Statement, String> {
+        use tk::*;
         match self.curtok.kind {
             Var => self.parse_var(),
             Return => self.parse_return(),
@@ -224,8 +226,10 @@ impl Parser {
     Subsequent times, the precedence is replaced with the precedence of a token.
     */
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
+        use tk::*;
+        
         let mut left = match self.curtok.kind {
-            IntegerLiteral | FloatLiteral => {
+            Integer | Float => {
                 let clone = self.curtok.clone();
                 Expression::Number(clone.text.parse().unwrap())
             }
@@ -235,10 +239,9 @@ impl Parser {
                 //TODO: probably can't have multiple paranthesis inside each otehr
                 self.parse_expression(Precedence::Iota)?
             }
-            StringLiteral => Expression::Str(self.curtok.text.clone()),
-            TrueLiteral => Expression::Bool(true),
-            FalseLiteral => Expression::Bool(false),
-            NilLiteral => Expression::Nil,
+            String => Expression::Str(self.curtok.text.clone()),
+            True => Expression::Bool(true),
+            False => Expression::Bool(false),
             _ => {
                 e_string!(
                     format!("Expected an expression. Instead got {:?}", self.curtok.kind),
@@ -267,6 +270,7 @@ impl Parser {
     }
 
     fn parse_infix_expression(&mut self, left: &Expression) -> Result<Option<Expression>, String> {
+        use tk::*;
         match self.curtok.kind {
             Slash | Mul | Minus | Plus | Equals | NotEquals | LessThan | GreaterThan
             | GreaterEquals | LessEquals => {
@@ -300,6 +304,7 @@ impl Parser {
         &mut self,
         left: &Expression,
     ) -> Result<Option<Expression>, String> {
+        use tk::*;
         match self.curtok.kind {
             Lparen => {
                 // parse a possibly delimited list
@@ -351,17 +356,19 @@ enum Precedence {
 
 impl Precedence {
     pub fn of_token(tok: &Token) -> Precedence {
-        use Precedence::*;
+        use Precedence as prec;
+        use tk::*;
 
         match tok.kind {
-            Lparen => Call,
-            Slash | Mul => Product,
-            Plus | Minus => Sum,
-            TokenKind::Equals | NotEquals => Equals,
-            LessThan | GreaterThan | LessEquals | GreaterEquals => LessThanGreaterThan,
-            TokenKind::Assign => Assign,
-            Semicolon => Statement,
-            _ => Iota,
+            Lparen => prec::Call,
+            Slash | Mul => prec::Product,
+            Plus | Minus => prec::Sum,
+            Equals | NotEquals => prec::Equals,
+            LessThan | GreaterThan 
+            | LessEquals | GreaterEquals => prec::LessThanGreaterThan,
+            Assign => prec::Assign,
+            Semicolon => prec::Statement,
+            _ => prec::Iota,
         }
     }
 }

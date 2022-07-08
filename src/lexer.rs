@@ -1,15 +1,18 @@
+use std::vec;
+
 use crate::token::*;
 use TokenKind::*;
 
 #[derive(Debug)]
 pub struct Lexer {
-    text: String,
+    source: Vec<char>,
 }
+
 
 impl Lexer {
     pub fn new(input: &str) -> Lexer {
         Lexer {
-            text: input.to_string(),
+            source: input.chars().collect(),
         }
     }
 
@@ -17,23 +20,23 @@ impl Lexer {
         let mut curtok = Token::new();
         let mut list = TokenStream::new();
 
-        for ch in self.text.chars() {
+        for ch in self.source.clone().into_iter() {
             match ch {
                 // numbers
                 '0'..='9' => match curtok.kind {
                     Whitespace => {
-                        curtok.kind = IntegerLiteral;
+                        curtok.kind = Integer;
                         curtok.push_char(ch);
                     }
                     Dot => {
-                        curtok.kind = FloatLiteral;
+                        curtok.kind = Float;
                         curtok.text.push(ch);
                     }
                     _ => curtok.push_char(ch),
                 },
                 // single operators
                 '+' | '-' | '*' | '{' | '}' | '(' | ')' | ',' | ';' => match curtok.kind {
-                    StringLiteral | Comment => curtok.push_char(ch),
+                    String | Comment => curtok.push_char(ch),
                     _ => {
                         list.push(&mut curtok);
                         curtok.kind = TokenKind::from_char(ch);
@@ -43,7 +46,7 @@ impl Lexer {
                 },
                 // operators that can be combined. e.g <=
                 '<' | '>' | '!' => match curtok.kind {
-                    StringLiteral | Comment => curtok.push_char(ch),
+                    String | Comment => curtok.push_char(ch),
                     _ => {
                         list.push(&mut curtok);
                         curtok.kind = TokenKind::from_char(ch);
@@ -52,7 +55,7 @@ impl Lexer {
                 },
                 // Assignment
                 '=' => match curtok.kind {
-                    StringLiteral | Comment => curtok.push_char(ch),
+                    String | Comment => curtok.push_char(ch),
                     Assign => {
                         curtok.kind = Equals;
                         curtok.push_char(ch);
@@ -82,7 +85,7 @@ impl Lexer {
                 // Division Operator
                 '/' => {
                     match curtok.kind {
-                        StringLiteral | Comment => curtok.push_char(ch),
+                        String | Comment => curtok.push_char(ch),
                         _ => {
                             list.push(&mut curtok);
                             curtok.kind = Slash;
@@ -92,9 +95,9 @@ impl Lexer {
                 }
                 // Dot
                 '.' => match curtok.kind {
-                    StringLiteral | Comment => curtok.push_char(ch),
-                    IntegerLiteral => {
-                        curtok.kind = FloatLiteral;
+                    String | Comment => curtok.push_char(ch),
+                    Integer => {
+                        curtok.kind = Float;
                         curtok.push_char(ch);
                     }
                     _ => {
@@ -104,7 +107,7 @@ impl Lexer {
                 },
                 // Whitespace
                 ' ' => match curtok.kind {
-                    Comment | StringLiteral => {
+                    Comment | String => {
                         curtok.push_char(ch);
                     }
                     _ => {
@@ -113,7 +116,7 @@ impl Lexer {
                     }
                 },
                 '\t' => match curtok.kind {
-                    Comment | StringLiteral => {
+                    Comment | String => {
                         curtok.push_char(ch);
                     }
                     _ => {
@@ -140,17 +143,17 @@ impl Lexer {
                 }
                 // string
                 '"' => match curtok.kind {
-                    StringLiteral => {
+                    String => {
                         list.push(&mut curtok);
                     }
                     Comment => curtok.push_char(ch),
                     _ => {
                         list.push(&mut curtok);
-                        curtok.kind = StringLiteral;
+                        curtok.kind = String;
                     }
                 },
                 _ => match curtok.kind {
-                    Whitespace | IntegerLiteral | FloatLiteral => {
+                    Whitespace | Integer | Float => {
                         list.push(&mut curtok);
                         curtok.kind = Identifier;
                         curtok.push_char(ch);

@@ -1,6 +1,6 @@
 use std::{vec::IntoIter};
 
-use crate::{ast::*, object::*, object::Object::*, environment::Environment, stdlib, token::TokenKind::*};
+use crate::{ast::*, object::*, object::Object::*, environment::Environment, stdlib, token::TokenKind as tk};
 
 #[derive(Debug, Clone)]
 pub struct Interpreter {
@@ -44,17 +44,19 @@ impl Interpreter {
                 );
             }
             Statement::While { condition, body } => {
-                self.env.encase();
+                self.env.enter_scope();
                 loop {
                     if let Object::Bool(cond) = self.run_expression(condition.clone())? {
                         if cond == false {
-                            self.env.uncover();
+                            self.env.exit_scope();
                             return Ok(Option::None);
                         }
-    
-                        if let Some(retval) = self.run_body(body.clone())? {
-                            self.env.uncover();
-                            return Ok(Some(retval));
+
+                        for v in &body {
+                            if let Some(retval) = self.run_statement(v.clone())? {
+                                self.env.exit_scope();
+                                return Ok(Some(retval));
+                            }
                         }
     
                     } else {
@@ -69,15 +71,6 @@ impl Interpreter {
         Ok(Option::None)
     }
 
-    fn run_body(&mut self, block: Vec<Statement>) -> Result<Option<Object>, String> {
-        for v in block.into_iter() {
-            if let Some(retval) = self.run_statement(v)? {
-                return Ok(Some(retval));
-            }
-        }
-        Ok(None)
-    }
-
     fn run_expression(&mut self, expression: Expression) -> Result<Object, String> {
         let res = match expression {
             // Literals
@@ -89,11 +82,14 @@ impl Interpreter {
                 let left = self.run_expression(*left)?;
                 let right = self.run_expression(*right)?;
 
+                use tk::*;
                 match (&left, &op, &right) {
+
                     (Number(l), Plus, Number(r)) => Number(l + r),
                     (Number(l), Minus, Number(r)) => Number(l - r),
                     (Number(l), Equals, Number(r)) => Bool(l == r),
                     (Number(l), LessThan, Number(r)) => Bool(l < r),
+                    (Bool(l), Equals, Bool(r)) => Bool(l == r),
                     _ => {
                         return Err(format!(
                             "Unsupported operation {:?} between {:?} and {:?}",
@@ -115,10 +111,10 @@ impl Interpreter {
                 if let Some(val) = self.env.get(&name) {
                     val.clone()
                 } else {
+                    //dbg!(&self.env);
                     return Err(format!("Identifier {} does not exist", name));
                 }
             }
-            Expression::Nil => Object::Nil,
             Expression::Assign(name, value) => self.run_assign(*name, *value)?,
         };
         return Ok(res);
@@ -144,26 +140,22 @@ impl Interpreter {
                         ));
                     }
 
-                    //dbg!(&self.env);
-                   // let old_env = self.env.clone();
-                    self.env.encase();
-                    //dbg!(&self.env);
+                    self.env.enter_scope();
 
                     for i in 0..f.params.len() {
                         self.env.insert(f.params[i].clone(), args[i].clone());
                     }
 
-                    let mut retval = Object::Nil;
+                    let mut retval = Object::Unit;
 
-                    if let Some(_retval) = self.run_body(f.body)? {
-                        retval = _retval;
+                    for v in f.body {
+                        if let Some(_retval) = self.run_statement(v)? {
+                            retval = _retval;
+                            break;
+                        }
                     }
 
-                    self.env.uncover();
-                    //self.env = old_env;
-                    //self.env.uncover();
-                    //dbg!(&self.env);
-
+                    self.env.exit_scope();
 
                     return Ok(retval);
                 }
@@ -187,7 +179,7 @@ impl Interpreter {
             match self.env.get(name) {
                 Some(_old_value) => {
                     self.env.insert(name.clone(), new_value);
-                    return Ok(Object::Nil);
+                    return Ok(Object::Unit);
                 }
                 None => {
                     return Err(format!("Identifier {} hasn't been declared", name));

@@ -1,6 +1,7 @@
 use std::vec;
 
-use crate::token::*;
+use crate::token::{*, self};
+use std::string::String as StdString;
 use TokenKind::*;
 
 #[derive(Debug)]
@@ -19,189 +20,191 @@ impl Lexer {
         Lexer {
             source: input.chars().collect(),
             tokens: vec![],
-            col: 0,
-            ln: 0,
+            col: 1,
+            ln: 1,
             startidx: 0,
             endidx: 0,
         }
     }
 
     pub fn parse(&mut self) -> Vec<Token> {
-        let mut curtok = Token::new();
-        let mut list = TokenStream::new();
-
         while self.endidx < self.source.len() {
             let ch = self.source[self.endidx];
+            self.endidx += 1;
+            self.col += 1;
 
             match ch {
-                // numbers
-                '0'..='9' => match curtok.kind {
-                    Whitespace => {
-                        curtok.kind = Integer;
-                        curtok.push_char(ch);
-                    }
-                    Dot => {
-                        curtok.kind = Float;
-                        curtok.text.push(ch);
-                    }
-                    _ => curtok.push_char(ch),
+                ' ' => self.startidx += 1,
+                '\t' => {
+                    self.col += 3;
+                    self.startidx += 1;
                 },
-                // single operators
-                '+' | '-' | '*' | '{' | '}' | '(' | ')' | ',' | ';' => match curtok.kind {
-                    String | Comment => curtok.push_char(ch),
-                    _ => {
-                        list.push(&mut curtok);
-                        curtok.kind = TokenKind::from_char(ch);
-                        curtok.push_char(ch);
-                        list.push(&mut curtok);
-                    }
-                },
-                // operators that can be combined. e.g <=
-                '<' | '>' | '!' => match curtok.kind {
-                    String | Comment => curtok.push_char(ch),
-                    _ => {
-                        list.push(&mut curtok);
-                        curtok.kind = TokenKind::from_char(ch);
-                        curtok.push_char(ch);
-                    }
-                },
-                // Assignment
-                '=' => match curtok.kind {
-                    String | Comment => curtok.push_char(ch),
-                    Assign => {
-                        curtok.kind = Equals;
-                        curtok.push_char(ch);
-                        list.push(&mut curtok);
-                    }
-                    Bang => {
-                        curtok.kind = NotEquals;
-                        curtok.push_char(ch);
-                        list.push(&mut curtok);
-                    }
-                    LessThan => {
-                        curtok.kind = LessEquals;
-                        curtok.push_char(ch);
-                        list.push(&mut curtok);
-                    }
-                    GreaterThan => {
-                        curtok.kind = GreaterEquals;
-                        curtok.push_char(ch);
-                        list.push(&mut curtok);
-                    }
-                    _ => {
-                        list.push(&mut curtok);
-                        curtok.kind = Assign;
-                        curtok.push_char(ch);
-                    }
-                },
-                // Division Operator
-                '/' => {
-                    match curtok.kind {
-                        String | Comment => curtok.push_char(ch),
-                        _ => {
-                            list.push(&mut curtok);
-                            curtok.kind = Slash;
-                        }
-                    }
-                    curtok.push_char(ch);
-                }
-                // Dot
-                '.' => match curtok.kind {
-                    String | Comment => curtok.push_char(ch),
-                    Integer => {
-                        curtok.kind = Float;
-                        curtok.push_char(ch);
-                    }
-                    _ => {
-                        list.push(&mut curtok);
-                        curtok.kind = Dot;
-                    }
-                },
-                // Whitespace
-                ' ' => match curtok.kind {
-                    Comment | String => {
-                        curtok.push_char(ch);
-                    }
-                    _ => {
-                        list.push(&mut curtok);
-                        curtok.col += 1;
-                    }
-                },
-                '\t' => match curtok.kind {
-                    Comment | String => {
-                        curtok.push_char(ch);
-                    }
-                    _ => {
-                        list.push(&mut curtok);
-                        curtok.col += 4;
-                    }
-                },
-                // new line (directs cursor to next row)
                 '\n' => {
-                    list.push(&mut curtok);
-                    curtok.ln += 1;
-                    curtok.col = 1;
+                    self.startidx += 1;
+                    self.col = 0;
+                    self.ln += 1;
                 }
-                // carriage return (directs cursor to beginning of col)
-                '\r' => {
-                    list.push(&mut curtok);
-                    curtok.col = 1;
+                '\r' => self.col = 0,
+                '+' => self.add_token(Plus),
+                '-' => self.add_token(Minus),
+                '*' => self.add_token(Star),
+                '/' => self.add_token(Slash),
+                '{' => self.add_token(Lbrace),
+                '}' => self.add_token(Rbrace),
+                '(' => self.add_token(Lparen),
+                ')' => self.add_token(Rparen),
+                ',' => self.add_token(Comma),
+                ';' => self.add_token(Semicolon),
+                '=' => {
+                    if self.cur_is('=') {
+                        self.advance();
+                        self.add_token(Equals);
+                    } else {
+                        self.add_token(Assign);
+                    }
                 }
-                // comment
-                '#' => {
-                    list.push(&mut curtok);
-                    curtok.kind = Comment;
-                    curtok.push_char(ch);
+                '!' => {
+                    if self.cur_is('=') {
+                        self.advance();
+                        self.add_token(NotEquals);
+                    } else {
+                        self.add_token(Bang);
+                    }
                 }
-                // string
-                '"' => match curtok.kind {
-                    String => {
-                        list.push(&mut curtok);
+                '<' => {
+                    if self.cur_is('=') {
+                        self.advance();
+                        self.add_token(LessEquals);
+                    } else {
+                        self.add_token(LessThan);
                     }
-                    Comment => curtok.push_char(ch),
-                    _ => {
-                        list.push(&mut curtok);
-                        curtok.kind = String;
+                }
+                '>' => {
+                    if self.cur_is('=') {
+                        self.advance();
+                        self.add_token(GreaterEquals);
+                    } else {
+                        self.add_token(GreaterThan);
                     }
-                },
-                _ => match curtok.kind {
-                    Whitespace | Integer | Float => {
-                        list.push(&mut curtok);
-                        curtok.kind = Identifier;
-                        curtok.push_char(ch);
-                    }
-                    _ => {
-                        curtok.push_char(ch);
-                    }
-                },
+                }
+                '0'..='9' => self.number(),
+                '"' => self.string(),
+                _ => self.ident(),
             }
         }
-        // might have  an identifier at the end of the document
-        list.push(&mut curtok);
 
-        // add EOF
-        curtok.kind = EOF;
-        list.push(&mut curtok);
+        self.add_token(EOF);
 
-        return list.as_vec();
+        return self.tokens.clone();
     }
 
     fn peek(&self) -> Option<&char> {
         return self.source.get(self.endidx + 1);
     }
 
-    fn string() {
-        
+    fn peek_is(&self, ch: char) -> bool {
+        match self.peek() {
+            Some(peek_ch) => *peek_ch == ch,
+            None => false,
+        }
     }
 
+    fn cur_is(&self, ch: char) -> bool {
+        match self.source.get(self.endidx) {
+            Some(peek_ch) => *peek_ch == ch,
+            None => false,
+        }
+    }
+
+    fn curch(&self) -> Option<&char> {
+        return self.source.get(self.endidx);
+    }
+
+    fn ident(&mut self) {
+        while let Some(ch) = self.curch(){
+            if ch.is_alphabetic() {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        let text: StdString = self.source[self.startidx..self.endidx].iter().collect();
+
+        let kind = match keywords().get(&text) {
+            Some(_kind) => _kind.clone(),
+            None => Identifier,
+        };
+
+        self.add_token(kind);
+    }
+
+    fn string(&mut self) {
+        self.startidx += 1;
+        while let Some(ch) = self.source.get(self.endidx) {
+            self.endidx += 1;
+            self.col += 1;
+            if *ch == '"' {
+                self.endidx -= 1;
+                break;
+            }
+        }
+
+       
+        self.add_token(String);
+        
+        self.endidx += 1;
+        self.col += 1;
+        self.startidx = self.endidx;     
+        
+        // self.startidx = self.endidx + 1;
+    }
+
+    fn number(&mut self) {
+        while let Some(ch) = self.source.get(self.endidx) {
+            if ch.is_ascii_digit() {
+                self.endidx += 1;
+                self.col += 1;
+            } else {
+                break;
+            }
+        }
+
+        let mut kind = Integer;
+
+        if self.curch() == Some(&'.') {
+            kind = Float;
+            self.endidx += 1;
+            self.col += 1;
+        }
+
+        while let Some(ch) = self.source.get(self.endidx) {
+            if ch.is_ascii_digit() {
+                self.endidx += 1;
+                self.col += 1;
+            } else {
+                break;
+            }
+        }
+
+        self.add_token(kind);
+    }
+
+    fn advance(&mut self) {
+        self.endidx += 1;
+        self.col += 1;
+    }
+
+
     fn add_token(&mut self, kind: TokenKind) {
-        let text = self.source[self.startidx..self.endidx].iter().collect();
+        let text: StdString = self.source[self.startidx..self.endidx].iter().collect();
+        let len = &text.len();
 
         self.tokens.push(Token {
             kind: kind,
             text: text,
             ln: self.ln,
-            col: self.col,
+            col: self.col - len,
         });
 
         self.startidx = self.endidx;

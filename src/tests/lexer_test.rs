@@ -8,3 +8,39 @@ fn cols_linenums() {
     dbg!(&res);
     let it = res.iter();
 }
+
+#[test]
+fn test_easy() {
+    let src = " + -     /\n++";
+    let mut l = Lexer::new(src);
+    let res = l.parse();
+    dbg!(&res);
+    let it = res.iter();
+}
+
+#[test]
+fn ident() {
+    let src = r#"true bobby + - "bruh" d"s""#;
+    let mut l = Lexer::new(src);
+    let res = l.parse();
+    dbg!(&res);
+    let it = res.iter();
+}
+
+#[test]
+fn numbers() {
+    let src = r#"3.0    69 0"#;
+    let mut l = Lexer::new(src);
+    let res = l.parse();
+    dbg!(&res);
+    let it = res.iter();
+}
+
+#[test]
+fn combined_ops() {
+    let src = r#"= == < <= > >= ! !="#;
+    let mut l = Lexer::new(src);
+    let res = l.parse();
+    dbg!(&res);
+    let it = res.iter();
+}

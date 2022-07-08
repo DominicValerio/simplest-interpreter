@@ -16,7 +16,8 @@ fn simple() {
     foo(3, 1)
 
     var x = 0
-    while x < 100 {
+    while x < 1000000 {
+      x = x + 1
     }
     println(x)
   "#;

@@ -1,6 +1,8 @@
-use crate::{ast::*, interpreter::Interpreter, object::Object};
+
+use crate::{object::Object};
 use std::{collections::HashMap};
 
+/// Used to simulate variable scope
 #[derive(Debug, Clone)]
 pub struct Environment {
     pub current: HashMap<String, Object>,
@@ -71,5 +73,3 @@ impl Environment {
         }        
     }
 }
-
-

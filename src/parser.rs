@@ -1,10 +1,7 @@
-use std::iter::Peekable;
-use std::vec::IntoIter;
+use std::{iter::Peekable, vec::IntoIter};
+use crate::{ast::*, token::*, token::TokenKind as tk};
 
-use crate::ast::*;
-use crate::token::*;
-use TokenKind as tk;
-
+#[derive(Debug)]
 pub struct Parser {
     curtok: Token,
     iter: Peekable<IntoIter<Token>>,
@@ -67,48 +64,6 @@ impl Parser {
             }
             None => None,
         }
-    }
-
-    fn peek(&mut self) -> Result<Token, String> {
-        if let Some(t) = self.iter.peek() {
-            return Ok(t.clone());
-        }
-
-        self.error("Parsed past EOF")
-    }
-
-    fn error(&self, text: &str) -> Result<Token, String> {
-        Err(format!(
-            "(Ln {}, Col {}) {}",
-            self.curtok.ln, self.curtok.col, text
-        ))
-    }
-
-    fn expect_peek(&mut self, kind: TokenKind) -> Result<Token, String> {
-        let peek = self.peek()?;
-        if peek.kind == kind {
-            return Ok(peek);
-        }
-        let msg = format!(
-            "Expected the next token to be {:?}, instead got {:?}",
-            kind, peek.kind
-        );
-        e_string!(msg, self)
-    }
-
-    fn expect_kind(&mut self, kind: TokenKind) -> Result<Token, String> {
-        if self.curtok.kind == kind {
-            return Ok(self.curtok.clone());
-        } else {
-            e_string!(
-                format!("Expected {:?}. Instead got {:?}", kind, self.curtok.kind),
-                self
-            )
-        }
-    }
-
-    fn curtok_is(&mut self, kind: TokenKind) -> bool {
-        return self.curtok.kind == kind;
     }
 
     fn parse_while(&mut self) -> Result<Statement, String> {
@@ -208,6 +163,7 @@ impl Parser {
             Var => self.parse_var(),
             Return => self.parse_return(),
             While => self.parse_while(),
+            Lbrace => Ok(Statement::Block(self.parse_block()?)),
             _ => Ok(Statement::Expression(
                 self.parse_expression(Precedence::Iota)?,
             )),
@@ -246,6 +202,7 @@ impl Parser {
             True => Expression::Bool(true),
             False => Expression::Bool(false),
             _ => {
+                dbg!(&self);
                 e_string!(
                     format!("Expected an expression. Instead got {:?}", self.curtok.kind),
                     self
@@ -340,6 +297,49 @@ impl Parser {
             }
             _ => Ok(None),
         }
+    }
+
+    
+    fn peek(&mut self) -> Result<Token, String> {
+        if let Some(t) = self.iter.peek() {
+            return Ok(t.clone());
+        }
+
+        self.error("Parsed past EOF")
+    }
+
+    fn error(&self, text: &str) -> Result<Token, String> {
+        Err(format!(
+            "(Ln {}, Col {}) {}",
+            self.curtok.ln, self.curtok.col, text
+        ))
+    }
+
+    fn expect_peek(&mut self, kind: TokenKind) -> Result<Token, String> {
+        let peek = self.peek()?;
+        if peek.kind == kind {
+            return Ok(peek);
+        }
+        let msg = format!(
+            "Expected the next token to be {:?}, instead got {:?}",
+            kind, peek.kind
+        );
+        e_string!(msg, self)
+    }
+
+    fn expect_kind(&mut self, kind: TokenKind) -> Result<Token, String> {
+        if self.curtok.kind == kind {
+            return Ok(self.curtok.clone());
+        } else {
+            e_string!(
+                format!("Expected {:?}. Instead got {:?}", kind, self.curtok.kind),
+                self
+            )
+        }
+    }
+
+    fn curtok_is(&mut self, kind: TokenKind) -> bool {
+        return self.curtok.kind == kind;
     }
 }
 

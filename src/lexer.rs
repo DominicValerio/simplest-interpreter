@@ -1,8 +1,7 @@
-use std::{fmt::format, vec};
+// Lexer/Scanner/Tokenizer
 
-use crate::token::{self, *};
-use std::string::String as StdString;
-use TokenKind::*;
+use std::{vec, string::String as StdString};
+use crate::token::{*, TokenKind::*};
 
 #[derive(Debug)]
 pub struct Lexer {
@@ -206,10 +205,6 @@ impl Lexer {
 
     fn peek(&self) -> Option<&char> {
         return self.source.get(self.endidx + 1);
-    }
-
-    fn peek_is(&self, ch: char) -> bool {
-        return self.peek() == Some(&ch);
     }
 
     fn curch_is(&self, ch: char) -> bool {

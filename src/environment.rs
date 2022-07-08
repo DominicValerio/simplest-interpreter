@@ -1,7 +1,8 @@
+// Environment: Used to simulate variable scope
+
 use crate::object::Object;
 use std::{collections::HashMap, vec};
 
-/// Used to simulate variable scope
 #[derive(Debug, Clone)]
 pub struct Environment {
     stack: Vec<HashMap<String, Object>>,
@@ -13,7 +14,7 @@ impl Environment {
             stack: vec![globals],
         }
     }
-
+    /// returns the value starting from the outermost scope (traditional method)
     pub fn get(&self, k: &String) -> Option<&Object> {
         for curmap in &self.stack {
             if let Some(v) = curmap.get(k) {
@@ -29,10 +30,10 @@ impl Environment {
                 return true;
             }
         }
-        dbg!(&self.stack);
         return false;
     }
-
+    
+    /// sets the key,value pair starting from the innermost scope (traditional method)
     pub fn insert(&mut self, k: String, v: Object) {
         //find the outermost variable name, then assign that
         for i in 0..self.stack.len() {

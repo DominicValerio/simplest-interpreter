@@ -1,3 +1,5 @@
+// Abstract Syntax Tree
+
 use crate::token::TokenKind;
 
 pub type Program = Vec<Statement>;

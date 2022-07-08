@@ -36,12 +36,17 @@ fn scope() {
 #[test]
 fn blocks() {
     let src = r#"
-    var x = 10;
+    var x = 5
     {
-      x = 4;
-      x= 01000;
+      var x = 3
+      {
+        var y = 3
+        print(x)
+        x = 10
+      }
+      
     }
-    println(x);
+    print(x)
   "#;
     let mut l = Lexer::new(src);
     let toks = l.parse();

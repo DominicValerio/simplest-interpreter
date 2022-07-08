@@ -69,9 +69,11 @@ impl Interpreter {
                 return Ok(Some(self.run_expression(expr)?));
             }
             Statement::Block(block) => {
+                self.env.enter_scope();
                 for statement in block {
                     self.run_statement(statement)?;
                 }
+                self.env.exit_scope();
             }
         }
         Ok(Option::None)

@@ -1,7 +1,20 @@
+// Simulates objects that can be used as variables
+
 use crate::{ast::Statement, interpreter::Interpreter};
-use std::{fmt, fmt::Debug, fmt::Display, fmt::Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 
 pub type NativeFunctionCallback = fn(Vec<Object>, &mut Interpreter) -> Object;
+
+#[derive(Clone, Debug)]
+pub enum Object {
+    Bool(bool),
+    Str(String),
+    Number(f64),
+    Function(Box<FunctionDef>),
+    NativeFunction(Box<NativeFunctionDef>),
+    /// Type that's used to signify no value
+    Unit,
+}
 
 #[derive(Clone, Debug)]
 pub struct FunctionDef {
@@ -13,16 +26,6 @@ pub struct FunctionDef {
 pub struct NativeFunctionDef {
     pub name: String,
     pub callback: NativeFunctionCallback,
-}
-
-#[derive(Clone, Debug)]
-pub enum Object {
-    Unit,
-    Bool(bool),
-    Str(String),
-    Number(f64),
-    Function(Box<FunctionDef>),
-    NativeFunction(Box<NativeFunctionDef>),
 }
 
 impl Debug for NativeFunctionDef {

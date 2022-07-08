@@ -1,3 +1,5 @@
+// Used to set the functions that are usable by the interpreter
+
 use crate::object::{NativeFunctionCallback, NativeFunctionDef, Object};
 use std::collections::HashMap;
 

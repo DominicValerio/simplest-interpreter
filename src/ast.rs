@@ -1,7 +1,6 @@
 use crate::token::TokenKind;
 
 pub type Program = Vec<Statement>;
-pub type Block = Vec<Statement>;
 
 #[derive(Debug, Clone)]
 pub enum Statement {
@@ -10,7 +9,7 @@ pub enum Statement {
     FunctionDeclaration {
         name: String,
         params: Vec<String>,
-        body: Block,
+        body: Vec<Statement>,
     },
     VarDeclaration {
         name: String,
@@ -18,8 +17,9 @@ pub enum Statement {
     },
     While {
         condition: Expression,
-        body: Block,
+        body: Vec<Statement>,
     },
+    Block(Vec<Statement>),
 }
 
 #[derive(Debug, Clone)]

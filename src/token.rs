@@ -10,7 +10,7 @@ pub enum TokenKind {
     True,
     False,
     Comment,
-    
+
     // Keywords
     Return,
     Var,
@@ -64,8 +64,6 @@ pub fn keywords() -> HashMap<String, TokenKind> {
     .map(|(k, v)| (k.to_string(), v))
     .collect()
 }
-
-
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {

@@ -1,6 +1,6 @@
-use std::{vec, fmt::format};
+use std::{fmt::format, vec};
 
-use crate::token::{*, self};
+use crate::token::{self, *};
 use std::string::String as StdString;
 use TokenKind::*;
 
@@ -13,7 +13,6 @@ pub struct Lexer {
     col: usize,
     ln: usize,
 }
-
 
 impl Lexer {
     pub fn new(input: &str) -> Lexer {
@@ -82,7 +81,7 @@ impl Lexer {
                 '\t' => {
                     self.col += 3;
                     self.startidx += 1;
-                },
+                }
                 '\n' => {
                     self.startidx += 1;
                     self.col = 0;
@@ -94,7 +93,7 @@ impl Lexer {
                 // strings
                 '"' => self.string()?,
                 // identifiers
-                'a'..='z' | '_' |  'A'..='Z' => self.ident(),
+                'a'..='z' | '_' | 'A'..='Z' => self.ident(),
                 _ => return Err(self.error(format!("Unknown symbol {ch}"))),
             }
         }
@@ -104,10 +103,8 @@ impl Lexer {
         return Ok(self.tokens.clone());
     }
 
-    
-
     fn ident(&mut self) {
-        while let Some(ch) = self.curch(){
+        while let Some(ch) = self.curch() {
             if ch.is_alphabetic() {
                 self.advance();
             } else {
@@ -132,7 +129,12 @@ impl Lexer {
 
         // if there's no matching quote
         if self.curch() != Some(&'"') {
-            return Err(self.error(format!("No closing quote for string {}", self.source[self.startidx+1..self.endidx+1].iter().collect::<StdString>())));
+            return Err(self.error(format!(
+                "No closing quote for string {}",
+                self.source[self.startidx + 1..self.endidx + 1]
+                    .iter()
+                    .collect::<StdString>()
+            )));
         }
 
         // correct the position to not include quotes
@@ -141,9 +143,9 @@ impl Lexer {
         self.col -= 2;
 
         self.advance();
-        
+
         self.add_token(String);
-        
+
         // correct the position to the quotes that were in the string
         self.startidx += 1;
         self.endidx += 1;
@@ -165,7 +167,7 @@ impl Lexer {
                 self.advance();
                 Float
             }
-            _ => Integer
+            _ => Integer,
         };
 
         while let Some(ch) = self.curch() {
@@ -178,9 +180,6 @@ impl Lexer {
 
         self.add_token(kind);
     }
-
-    
-
 
     fn add_token(&mut self, kind: TokenKind) {
         let text: StdString = self.source[self.startidx..self.endidx].iter().collect();
@@ -197,10 +196,7 @@ impl Lexer {
     }
 
     fn error<S: Into<StdString> + std::fmt::Display>(&self, text: S) -> StdString {
-        format!(
-            "(Ln {}, Col {}) {}",
-            self.ln, self.col, text
-        )
+        format!("(Ln {}, Col {}) {}", self.ln, self.col, text)
     }
 
     fn advance(&mut self) {

@@ -42,6 +42,9 @@ impl Parser {
                 While => {
                     program.push(self.parse_while()?);
                 }
+                Lbrace => {
+                    program.push(Statement::Block(self.parse_block()?));
+                }
                 Semicolon | Comment => {
                     self.next();
                 }
@@ -227,7 +230,7 @@ impl Parser {
     */
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
         use tk::*;
-        
+
         let mut left = match self.curtok.kind {
             Integer | Float => {
                 let clone = self.curtok.clone();
@@ -356,16 +359,15 @@ enum Precedence {
 
 impl Precedence {
     pub fn of_token(tok: &Token) -> Precedence {
-        use Precedence as prec;
         use tk::*;
+        use Precedence as prec;
 
         match tok.kind {
             Lparen => prec::Call,
             Slash | Mul => prec::Product,
             Plus | Minus => prec::Sum,
             Equals | NotEquals => prec::Equals,
-            LessThan | GreaterThan 
-            | LessEquals | GreaterEquals => prec::LessThanGreaterThan,
+            LessThan | GreaterThan | LessEquals | GreaterEquals => prec::LessThanGreaterThan,
             Assign => prec::Assign,
             Semicolon => prec::Statement,
             _ => prec::Iota,

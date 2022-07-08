@@ -1,6 +1,8 @@
-use std::{vec::IntoIter};
+use std::vec::IntoIter;
 
-use crate::{ast::*, object::*, object::Object::*, environment::Environment, stdlib, token::TokenKind as tk};
+use crate::{
+    ast::*, environment::Environment, object::Object::*, object::*, stdlib, token::TokenKind as tk,
+};
 
 #[derive(Debug, Clone)]
 pub struct Interpreter {
@@ -58,14 +60,18 @@ impl Interpreter {
                                 return Ok(Some(retval));
                             }
                         }
-    
                     } else {
                         return Err("Expression after while isn't a boolean".to_string());
                     }
                 }
-            },
+            }
             Statement::Return(expr) => {
                 return Ok(Some(self.run_expression(expr)?));
+            }
+            Statement::Block(block) => {
+                for statement in block {
+                    self.run_statement(statement)?;
+                }
             }
         }
         Ok(Option::None)
@@ -84,7 +90,6 @@ impl Interpreter {
 
                 use tk::*;
                 match (&left, &op, &right) {
-
                     (Number(l), Plus, Number(r)) => Number(l + r),
                     (Number(l), Minus, Number(r)) => Number(l - r),
                     (Number(l), Equals, Number(r)) => Bool(l == r),
@@ -125,7 +130,7 @@ impl Interpreter {
             let v = self.env.get(name).unwrap().clone();
             match v {
                 Object::NativeFunction(f) => {
-                    if args.len() < 1 { 
+                    if args.len() < 1 {
                         return Err(format!("No arguments provided to function {name}"));
                     }
                     let retval = (f.callback)(args, self);

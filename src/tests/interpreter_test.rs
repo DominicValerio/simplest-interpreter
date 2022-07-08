@@ -32,3 +32,27 @@ fn scope() {
     let time = instant.elapsed().as_secs_f64();
     assert_eq!(i.stdout, "100\n".to_string())
 }
+
+#[test]
+fn blocks() {
+    let src = r#"
+    var x = 10;
+    {
+      x = 4;
+      x= 01000;
+    }
+    println(x);
+  "#;
+    let mut l = Lexer::new(src);
+    let toks = l.parse();
+    //dbg!(&toks);
+    let mut p = Parser::new(l.parse().unwrap());
+    let res = p.parse().unwrap();
+    //dbg!((&res));
+    let mut i = Interpreter::new(res);
+    let instant = Instant::now();
+    i.run().unwrap();
+    //dbg!(&i.env);
+
+    let time = instant.elapsed().as_secs_f64();
+}

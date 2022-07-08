@@ -1,5 +1,5 @@
 use crate::object::{NativeFunctionCallback, NativeFunctionDef, Object};
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 #[allow(non_upper_case_globals)]
 const print: NativeFunctionCallback = |args, i| {
@@ -17,14 +17,11 @@ const print: NativeFunctionCallback = |args, i| {
 const println: NativeFunctionCallback = |args, i| {
     let ret = print(args, i);
     print(vec![Object::Str("\n".to_string())], i);
-    return ret
+    return ret;
 };
 
 pub fn get_lib() -> HashMap<String, Object> {
-    [
-        ("print", print), 
-        ("println", println), 
-    ]
+    [("print", print), ("println", println)]
         .into_iter()
         .map(|(k, v)| {
             (

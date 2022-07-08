@@ -17,29 +17,29 @@ pub struct NativeFunctionDef {
 
 #[derive(Clone, Debug)]
 pub enum Object {
-  Unit,
-  Bool(bool),
-  Str(String),
-  Number(f64),
-  Function(Box<FunctionDef>),
-  NativeFunction(Box<NativeFunctionDef>),
+    Unit,
+    Bool(bool),
+    Str(String),
+    Number(f64),
+    Function(Box<FunctionDef>),
+    NativeFunction(Box<NativeFunctionDef>),
 }
 
 impl Debug for NativeFunctionDef {
-  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-      write!(f, "{}", self.name)
-  }
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
 }
 
 impl Display for Object {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-      use Object::*;
-      let res = match self {
-        Bool(v) => v.to_string(),
-        Number(v) => v.to_string(),
-        Str(v) => v.clone(), 
-        _ => unimplemented!(),
-      };
-      write!(f, "{}", res)
+        use Object::*;
+        let res = match self {
+            Bool(v) => v.to_string(),
+            Number(v) => v.to_string(),
+            Str(v) => v.clone(),
+            _ => unimplemented!(),
+        };
+        write!(f, "{}", res)
     }
 }

@@ -1,21 +1,22 @@
-
-use crate::{object::Object};
+use crate::object::Object;
 use std::{collections::HashMap, vec};
 
 /// Used to simulate variable scope
 #[derive(Debug, Clone)]
 pub struct Environment {
-    stack: Vec<HashMap<String, Object>>
+    stack: Vec<HashMap<String, Object>>,
 }
 
 impl Environment {
     pub fn from(globals: HashMap<String, Object>) -> Environment {
-        Environment { stack: vec![globals] }
+        Environment {
+            stack: vec![globals],
+        }
     }
 
     pub fn get(&self, k: &String) -> Option<&Object> {
         for curmap in &self.stack {
-            if let Some(v) = curmap.get(k) { 
+            if let Some(v) = curmap.get(k) {
                 return Some(v);
             }
         }
@@ -24,7 +25,7 @@ impl Environment {
 
     pub fn contains(&self, k: &String) -> bool {
         for curmap in &self.stack {
-            if curmap.contains_key(k) { 
+            if curmap.contains_key(k) {
                 return true;
             }
         }
@@ -51,6 +52,8 @@ impl Environment {
     }
 
     pub fn exit_scope(&mut self) {
-        self.stack.pop().expect("Environment tried to pop an empty stack");
+        self.stack
+            .pop()
+            .expect("Environment tried to pop an empty stack");
     }
 }

@@ -2,9 +2,6 @@ use std::collections::HashMap;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum TokenKind {
-    EOF,
-    Whitespace,
-
     // Literals
     Identifier,
     Integer,
@@ -49,6 +46,8 @@ pub enum TokenKind {
     Comma,
     Semicolon,
     Dot,
+
+    EOF,
 }
 
 pub fn keywords() -> HashMap<String, TokenKind> {

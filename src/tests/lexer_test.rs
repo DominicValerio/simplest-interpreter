@@ -19,8 +19,8 @@ fn test_easy() {
 }
 
 #[test]
-fn ident() {
-    let src = r#"true bobby + - "bruh" d"s""#;
+fn string() {
+    let src = r#"bobby boi   "#;
     let mut l = Lexer::new(src);
     let res = l.parse();
     dbg!(&res);

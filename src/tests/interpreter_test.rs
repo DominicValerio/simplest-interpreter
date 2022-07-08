@@ -21,7 +21,7 @@ fn scope() {
     let mut l = Lexer::new(src);
     let toks = l.parse();
     //dbg!(&toks);
-    let mut p = Parser::new(l.parse());
+    let mut p = Parser::new(l.parse().unwrap());
     let res = p.parse().unwrap();
     //dbg!((&res));
     let mut i = Interpreter::new(res);

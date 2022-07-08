@@ -20,7 +20,7 @@ fn main() {
     };
 
     let mut l = Lexer::new(&text);
-    let mut p = Parser::new(l.parse());
+    let mut p = Parser::new(l.parse().unwrap());
     let res = p.parse();
 
     let ast;

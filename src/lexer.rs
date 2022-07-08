@@ -1,4 +1,4 @@
-use std::vec;
+use std::{vec, fmt::format};
 
 use crate::token::{*, self};
 use std::string::String as StdString;
@@ -27,24 +27,14 @@ impl Lexer {
         }
     }
 
-    pub fn parse(&mut self) -> Vec<Token> {
+    pub fn parse(&mut self) -> Result<Vec<Token>, StdString> {
         while self.endidx < self.source.len() {
             let ch = self.source[self.endidx];
             self.endidx += 1;
             self.col += 1;
 
             match ch {
-                ' ' => self.startidx += 1,
-                '\t' => {
-                    self.col += 3;
-                    self.startidx += 1;
-                },
-                '\n' => {
-                    self.startidx += 1;
-                    self.col = 0;
-                    self.ln += 1;
-                }
-                '\r' => self.col = 0,
+                // operators
                 '+' => self.add_token(Plus),
                 '-' => self.add_token(Minus),
                 '*' => self.add_token(Star),
@@ -56,7 +46,7 @@ impl Lexer {
                 ',' => self.add_token(Comma),
                 ';' => self.add_token(Semicolon),
                 '=' => {
-                    if self.cur_is('=') {
+                    if self.curch_is('=') {
                         self.advance();
                         self.add_token(Equals);
                     } else {
@@ -64,7 +54,7 @@ impl Lexer {
                     }
                 }
                 '!' => {
-                    if self.cur_is('=') {
+                    if self.curch_is('=') {
                         self.advance();
                         self.add_token(NotEquals);
                     } else {
@@ -72,7 +62,7 @@ impl Lexer {
                     }
                 }
                 '<' => {
-                    if self.cur_is('=') {
+                    if self.curch_is('=') {
                         self.advance();
                         self.add_token(LessEquals);
                     } else {
@@ -80,45 +70,41 @@ impl Lexer {
                     }
                 }
                 '>' => {
-                    if self.cur_is('=') {
+                    if self.curch_is('=') {
                         self.advance();
                         self.add_token(GreaterEquals);
                     } else {
                         self.add_token(GreaterThan);
                     }
                 }
+                // whitespace
+                ' ' => self.startidx += 1,
+                '\t' => {
+                    self.col += 3;
+                    self.startidx += 1;
+                },
+                '\n' => {
+                    self.startidx += 1;
+                    self.col = 0;
+                    self.ln += 1;
+                }
+                '\r' => self.col = 0,
+                // numbers
                 '0'..='9' => self.number(),
-                '"' => self.string(),
-                _ => self.ident(),
+                // strings
+                '"' => self.string()?,
+                // identifiers
+                'a'..='z' | '_' |  'A'..='Z' => self.ident(),
+                _ => return Err(self.error(format!("Unknown symbol {ch}"))),
             }
         }
 
         self.add_token(EOF);
 
-        return self.tokens.clone();
+        return Ok(self.tokens.clone());
     }
 
-    fn peek(&self) -> Option<&char> {
-        return self.source.get(self.endidx + 1);
-    }
-
-    fn peek_is(&self, ch: char) -> bool {
-        match self.peek() {
-            Some(peek_ch) => *peek_ch == ch,
-            None => false,
-        }
-    }
-
-    fn cur_is(&self, ch: char) -> bool {
-        match self.source.get(self.endidx) {
-            Some(peek_ch) => *peek_ch == ch,
-            None => false,
-        }
-    }
-
-    fn curch(&self) -> Option<&char> {
-        return self.source.get(self.endidx);
-    }
+    
 
     fn ident(&mut self) {
         while let Some(ch) = self.curch(){
@@ -139,49 +125,52 @@ impl Lexer {
         self.add_token(kind);
     }
 
-    fn string(&mut self) {
-        self.startidx += 1;
-        while let Some(ch) = self.source.get(self.endidx) {
-            self.endidx += 1;
-            self.col += 1;
-            if *ch == '"' {
-                self.endidx -= 1;
-                break;
-            }
+    fn string(&mut self) -> Result<(), StdString> {
+        while self.curch() != Some(&'"') && self.peek() != None {
+            self.advance();
         }
 
-       
+        // if there's no matching quote
+        if self.curch() != Some(&'"') {
+            return Err(self.error(format!("No closing quote for string {}", self.source[self.startidx+1..self.endidx+1].iter().collect::<StdString>())));
+        }
+
+        // correct the position to not include quotes
+        self.startidx += 1;
+        self.endidx -= 1;
+        self.col -= 2;
+
+        self.advance();
+        
         self.add_token(String);
         
+        // correct the position to the quotes that were in the string
+        self.startidx += 1;
         self.endidx += 1;
-        self.col += 1;
-        self.startidx = self.endidx;     
-        
-        // self.startidx = self.endidx + 1;
+        self.col += 2;
+        Ok(())
     }
 
     fn number(&mut self) {
-        while let Some(ch) = self.source.get(self.endidx) {
+        while let Some(ch) = self.curch() {
             if ch.is_ascii_digit() {
-                self.endidx += 1;
-                self.col += 1;
+                self.advance();
             } else {
                 break;
             }
         }
 
-        let mut kind = Integer;
+        let kind = match self.curch() {
+            Some('.') => {
+                self.advance();
+                Float
+            }
+            _ => Integer
+        };
 
-        if self.curch() == Some(&'.') {
-            kind = Float;
-            self.endidx += 1;
-            self.col += 1;
-        }
-
-        while let Some(ch) = self.source.get(self.endidx) {
+        while let Some(ch) = self.curch() {
             if ch.is_ascii_digit() {
-                self.endidx += 1;
-                self.col += 1;
+                self.advance();
             } else {
                 break;
             }
@@ -190,10 +179,7 @@ impl Lexer {
         self.add_token(kind);
     }
 
-    fn advance(&mut self) {
-        self.endidx += 1;
-        self.col += 1;
-    }
+    
 
 
     fn add_token(&mut self, kind: TokenKind) {
@@ -208,5 +194,36 @@ impl Lexer {
         });
 
         self.startidx = self.endidx;
+    }
+
+    fn error<S: Into<StdString> + std::fmt::Display>(&self, text: S) -> StdString {
+        format!(
+            "(Ln {}, Col {}) {}",
+            self.ln, self.col, text
+        )
+    }
+
+    fn advance(&mut self) {
+        self.endidx += 1;
+        self.col += 1;
+    }
+
+    fn peek(&self) -> Option<&char> {
+        return self.source.get(self.endidx + 1);
+    }
+
+    fn peek_is(&self, ch: char) -> bool {
+        return self.peek() == Some(&ch);
+    }
+
+    fn curch_is(&self, ch: char) -> bool {
+        match self.source.get(self.endidx) {
+            Some(peek_ch) => *peek_ch == ch,
+            None => false,
+        }
+    }
+
+    fn curch(&self) -> Option<&char> {
+        return self.source.get(self.endidx);
     }
 }

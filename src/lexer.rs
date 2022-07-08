@@ -1,7 +1,7 @@
 // Lexer/Scanner/Tokenizer
 
-use std::{vec, string::String as StdString};
-use crate::token::{*, TokenKind::*};
+use std::{vec, string::String as StdString, fmt::Display};
+use crate::token::{*, TokenKind as tk};
 
 #[derive(Debug)]
 pub struct Lexer {
@@ -25,7 +25,9 @@ impl Lexer {
         }
     }
 
-    pub fn parse(&mut self) -> Result<Vec<Token>, StdString> {
+    pub fn parse(&mut self) -> Result<Vec<Token>, String> {
+        use tk::*;
+
         while self.endidx < self.source.len() {
             let ch = self.source[self.endidx];
             self.endidx += 1;
@@ -115,7 +117,7 @@ impl Lexer {
 
         let kind = match keywords().get(&text) {
             Some(_kind) => _kind.clone(),
-            None => Identifier,
+            None => tk::Identifier,
         };
 
         self.add_token(kind);
@@ -143,7 +145,7 @@ impl Lexer {
 
         self.advance();
 
-        self.add_token(String);
+        self.add_token(tk::String);
 
         // correct the position to the quotes that were in the string
         self.startidx += 1;
@@ -164,9 +166,9 @@ impl Lexer {
         let kind = match self.curch() {
             Some('.') => {
                 self.advance();
-                Float
+                tk::Float
             }
-            _ => Integer,
+            _ => tk::Integer,
         };
 
         while let Some(ch) = self.curch() {
@@ -194,7 +196,7 @@ impl Lexer {
         self.startidx = self.endidx;
     }
 
-    fn error<S: Into<StdString> + std::fmt::Display>(&self, text: S) -> StdString {
+    fn error<S: Into<StdString> + Display>(&self, text: S) -> StdString {
         format!("(Ln {}, Col {}) {}", self.ln, self.col, text)
     }
 

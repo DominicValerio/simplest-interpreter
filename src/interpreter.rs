@@ -1,12 +1,13 @@
-use std::vec::IntoIter;
+use std::{vec::IntoIter, fmt::Display};
 
 use crate::{
-    ast::*, environment::Environment, object::Object::*, object::*, stdlib, token::TokenKind as tk,
+    ast::*, environment::Environment, object::Object::*, object::*, stdlib, token::Token, token::TokenKind as tk,
 };
 
 #[derive(Debug, Clone)]
 pub struct Interpreter {
-    ast: IntoIter<Statement>,
+    curtok: Token,
+    ast: IntoIter<AstNode>,
     pub env: Environment,
     pub stdout: String,
 }
@@ -14,6 +15,7 @@ pub struct Interpreter {
 impl Interpreter {
     pub fn new(ast: Program) -> Self {
         Self {
+            curtok: ast[0].1.clone(),
             ast: ast.into_iter(),
             env: Environment::from(stdlib::get_lib()),
             stdout: String::new(),
@@ -21,7 +23,8 @@ impl Interpreter {
     }
 
     pub fn run(&mut self) -> Result<(), String> {
-        while let Some(statement) = self.ast.next() {
+        while let Some((statement, matching_token)) = self.ast.next() {
+            self.curtok = matching_token;
             self.run_statement(statement)?;
         }
         Ok(())
@@ -61,7 +64,7 @@ impl Interpreter {
                             }
                         }
                     } else {
-                        return Err("Expression after while isn't a boolean".to_string());
+                        return Err(self.error("Expression after while isn't a boolean"));
                     }
                 }
             }
@@ -98,10 +101,10 @@ impl Interpreter {
                     (Number(l), LessThan, Number(r)) => Bool(l < r),
                     (Bool(l), Equals, Bool(r)) => Bool(l == r),
                     _ => {
-                        return Err(format!(
-                            "Unsupported operation {:?} between {:?} and {:?}",
+                        return Err(self.error(format!(
+                            "Unsupported operation {:?} between {} and {}",
                             op, left, right
-                        ));
+                        )));
                     }
                 }
             }
@@ -118,8 +121,7 @@ impl Interpreter {
                 if let Some(val) = self.env.get(&name) {
                     val.clone()
                 } else {
-                    //dbg!(&self.env);
-                    return Err(format!("Identifier {} does not exist", name));
+                    return Err(self.error(format!("Identifier `{name}` does not exist")));
                 }
             }
             Expression::Assign(name, value) => self.run_assign(*name, *value)?,
@@ -133,18 +135,18 @@ impl Interpreter {
             match v {
                 Object::NativeFunction(f) => {
                     if args.len() < 1 {
-                        return Err(format!("No arguments provided to function {name}"));
+                        return Err(self.error(format!("No arguments provided to function `{name}`")));
                     }
                     let retval = (f.callback)(args, self);
                     return Ok(retval);
                 }
                 Object::Function(f) => {
                     if f.params.len() != args.len() {
-                        return Err(format!(
+                        return Err(self.error(format!(
                             "Arguments of length {} don't match paramters of length {}",
                             args.len(),
                             f.params.len()
-                        ));
+                        )));
                     }
 
                     self.env.enter_scope();
@@ -166,10 +168,10 @@ impl Interpreter {
 
                     return Ok(retval);
                 }
-                _ => Err(format!("{} is not a function", name)),
+                _ => Err(self.error(format!("`{name}` is not a function"))),
             }
         } else {
-            Err(format!("{} is not defined", name))
+            Err(self.error(format!("`{name}` is not defined")))
         }
     }
 
@@ -189,11 +191,15 @@ impl Interpreter {
                     return Ok(Object::Unit);
                 }
                 None => {
-                    return Err(format!("Identifier {} hasn't been declared", name));
+                    return Err(self.error(format!("Identifier `{name}` hasn't been declared")));
                 }
             }
         }
 
-        Err(format!("{:?} is not an identifier", name))
+        Err(format!("`{name:?}` is not an identifier"))
+    }
+
+    fn error<S: Into<String> + Display>(&self, text: S) -> String {
+        format!("(Ln {}, Col {}) {}", self.curtok.ln, self.curtok.col, text)
     }
 }

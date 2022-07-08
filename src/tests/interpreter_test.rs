@@ -61,3 +61,24 @@ fn blocks() {
 
     let time = instant.elapsed().as_secs_f64();
 }
+
+#[test]
+fn error_tests() {
+    let src = r#"
+    while 0 / 3 {
+
+    }
+  "#;
+    let mut l = Lexer::new(src);
+    let toks = l.parse();
+    //dbg!(&toks);
+    let mut p = Parser::new(l.parse().unwrap());
+    let res = p.parse().unwrap();
+    //dbg!((&res));
+    let mut i = Interpreter::new(res);
+    let instant = Instant::now();
+    i.run().unwrap();
+    //dbg!(&i.env);
+
+    let time = instant.elapsed().as_secs_f64();
+}

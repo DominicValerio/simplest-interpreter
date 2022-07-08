@@ -4,12 +4,12 @@ use std::collections::HashMap;
 pub enum TokenKind {
     // Literals
     Identifier,
+    Comment,
+    String,
     Integer,
     Float,
-    String,
     True,
     False,
-    Comment,
 
     // Keywords
     Return,

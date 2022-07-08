@@ -1,8 +1,10 @@
 // Abstract Syntax Tree
 
-use crate::token::TokenKind;
+use crate::token::{TokenKind, Token};
 
-pub type Program = Vec<Statement>;
+// (statement, associated token)
+pub type AstNode = (Statement, Token);
+pub type Program = Vec<AstNode>;
 
 #[derive(Debug, Clone)]
 pub enum Statement {

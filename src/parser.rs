@@ -1,19 +1,10 @@
-use std::{iter::Peekable, vec::IntoIter};
+use std::{iter::Peekable, vec::IntoIter, fmt::Display};
 use crate::{ast::*, token::*, token::TokenKind as tk};
 
 #[derive(Debug)]
 pub struct Parser {
     curtok: Token,
     iter: Peekable<IntoIter<Token>>,
-}
-
-macro_rules! e_string {
-    ($text: expr, $p: ident) => {
-        return Err(format!(
-            "(Ln {}, Col {}) {}",
-            $p.curtok.ln, $p.curtok.col, $text
-        ))
-    };
 }
 
 impl Parser {
@@ -25,35 +16,34 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Program, String> {
-        use tk::*;
-        let mut program: Program = vec![];
-
         self.next();
 
-        while !self.curtok_is(EOF) {
-            match self.curtok.kind {
-                Var => {
-                    program.push(self.parse_var()?);
-                }
-                Fn => program.push(self.parse_function()?),
-                While => {
-                    program.push(self.parse_while()?);
-                }
-                Lbrace => {
-                    program.push(Statement::Block(self.parse_block()?));
-                }
-                Semicolon | Comment => {
-                    self.next();
-                }
-                _ => {
-                    program.push(Statement::Expression(
-                        self.parse_expression(Precedence::Iota)?,
-                    ));
-                }
-            }
+        let mut program = vec![];
+
+        while !self.curtok_is(tk::EOF) {
+            self.parse_next(&mut program)?;
         }
 
         return Ok(program);
+    }
+
+    fn parse_next(&mut self, program: &mut Program) -> Result<(), String> {
+        use tk::*;
+        use Statement::{Block, Expression};
+
+        let clone = self.curtok.clone();
+        match self.curtok.kind {
+            Var => program.push((self.parse_var()?, clone)),
+            Fn => program.push((self.parse_function()?, clone)),
+            While => program.push((self.parse_while()?, clone)),
+            Lbrace => program.push((Block(self.parse_block()?), clone)),
+            Semicolon | Comment => drop(self.next()),
+            _ =>
+            program.push(
+                (Expression(self.parse_expression(Precedence::Iota)?), clone)
+            )
+        }
+        Ok(())
     }
 
     fn next(&mut self) -> Option<Token> {
@@ -203,10 +193,7 @@ impl Parser {
             False => Expression::Bool(false),
             _ => {
                 dbg!(&self);
-                e_string!(
-                    format!("Expected an expression. Instead got {:?}", self.curtok.kind),
-                    self
-                )
+                return Err(self.error(format!("Expected an expression. Instead got {:?}", self.curtok.kind)));
             }
         };
 
@@ -305,14 +292,11 @@ impl Parser {
             return Ok(t.clone());
         }
 
-        self.error("Parsed past EOF")
+        Err(self.error("Parsed past EOF"))
     }
 
-    fn error(&self, text: &str) -> Result<Token, String> {
-        Err(format!(
-            "(Ln {}, Col {}) {}",
-            self.curtok.ln, self.curtok.col, text
-        ))
+    fn error<S: Into<String> + Display>(&self, text: S) -> String {
+        format!("(Ln {}, Col {}) {}", self.curtok.ln, self.curtok.col, text)
     }
 
     fn expect_peek(&mut self, kind: TokenKind) -> Result<Token, String> {
@@ -320,21 +304,17 @@ impl Parser {
         if peek.kind == kind {
             return Ok(peek);
         }
-        let msg = format!(
+        Err(self.error(format!(
             "Expected the next token to be {:?}, instead got {:?}",
             kind, peek.kind
-        );
-        e_string!(msg, self)
+        )))
     }
 
     fn expect_kind(&mut self, kind: TokenKind) -> Result<Token, String> {
         if self.curtok.kind == kind {
-            return Ok(self.curtok.clone());
+            Ok(self.curtok.clone())
         } else {
-            e_string!(
-                format!("Expected {:?}. Instead got {:?}", kind, self.curtok.kind),
-                self
-            )
+            Err(self.error( format!("Expected {:?}. Instead got {:?}", kind, self.curtok.kind)))
         }
     }
 

@@ -18,7 +18,7 @@ fn scope() {
     }
     println(i)
   "#;
-    let l = Lexer::new(src);
+    let mut l = Lexer::new(src);
     let toks = l.parse();
     //dbg!(&toks);
     let mut p = Parser::new(l.parse());

@@ -6,6 +6,11 @@ use TokenKind::*;
 #[derive(Debug)]
 pub struct Lexer {
     source: Vec<char>,
+    tokens: Vec<Token>,
+    startidx: usize,
+    endidx: usize,
+    col: usize,
+    ln: usize,
 }
 
 
@@ -13,14 +18,21 @@ impl Lexer {
     pub fn new(input: &str) -> Lexer {
         Lexer {
             source: input.chars().collect(),
+            tokens: vec![],
+            col: 0,
+            ln: 0,
+            startidx: 0,
+            endidx: 0,
         }
     }
 
-    pub fn parse(&self) -> Vec<Token> {
+    pub fn parse(&mut self) -> Vec<Token> {
         let mut curtok = Token::new();
         let mut list = TokenStream::new();
 
-        for ch in self.source.clone().into_iter() {
+        while self.endidx < self.source.len() {
+            let ch = self.source[self.endidx];
+
             match ch {
                 // numbers
                 '0'..='9' => match curtok.kind {
@@ -172,5 +184,26 @@ impl Lexer {
         list.push(&mut curtok);
 
         return list.as_vec();
+    }
+
+    fn peek(&self) -> Option<&char> {
+        return self.source.get(self.endidx + 1);
+    }
+
+    fn string() {
+        
+    }
+
+    fn add_token(&mut self, kind: TokenKind) {
+        let text = self.source[self.startidx..self.endidx].iter().collect();
+
+        self.tokens.push(Token {
+            kind: kind,
+            text: text,
+            ln: self.ln,
+            col: self.col,
+        });
+
+        self.startidx = self.endidx;
     }
 }

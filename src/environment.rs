@@ -43,8 +43,7 @@ impl Environment {
     pub fn insert(&mut self, k: String, v: Object) {
         // find the inner scoped variable name, then assign that
         for i in self.stack.len()..0 {
-            let dict = &self.stack[i];
-            if dict.contains_key(&k) {
+            if self.stack[i].contains_key(&k) {
                 self.stack[i].insert(k, v);
                 return;
             }

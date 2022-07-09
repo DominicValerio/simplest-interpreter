@@ -28,12 +28,12 @@ impl Interpreter {
     pub fn run(&mut self) -> Result<(), String> {
         while let Some((statement, matching_token)) = self.ast.next() {
             self.curtok = matching_token;
-            self.run_statement(statement)?;
+            self.run_statement(&statement)?;
         }
         Ok(())
     }
 
-    fn run_statement(&mut self, statement: Statement) -> Result<Option<Object>, String> {
+    fn run_statement(&mut self, statement: &Statement) -> Result<Option<Object>, String> {
         match statement {
             Statement::Expression(expr) => {
                 self.run_expression(expr)?;
@@ -51,19 +51,19 @@ impl Interpreter {
                     })),
                 );
             }
-            Statement::While { mut condition, body } => {
+            Statement::While { condition, body } => {
                 let mut ret = None;
                 self.env.enter_scope();
 
                 'outer: loop {
-                    if let Object::Bool(cond) = self.run_expression(condition.clone())? {
+                    if let Object::Bool(cond) = self.run_expression(condition)? {
 
                         if cond == false {
                             break;
                         }
 
-                        for v in &body {
-                            if let Some(retval) = self.run_statement(v.clone())? {
+                        for v in body {
+                            if let Some(retval) = self.run_statement(v)? {
                                 ret = Some(retval);
                                 break 'outer;
                             }
@@ -90,16 +90,16 @@ impl Interpreter {
         Ok(Option::None)
     }
 
-    fn run_expression(&mut self, expression: Expression) -> Result<Object, String> {
+    fn run_expression(&mut self, expression: &Expression) -> Result<Object, String> {
         let res = match expression {
             // Literals
-            Expression::Number(v) => Number(v),
-            Expression::Str(v) => Str(v),
-            Expression::Bool(v) => Bool(v),
+            Expression::Number(v) => Number(*v),
+            Expression::Str(v) => Str(v.clone()),
+            Expression::Bool(v) => Bool(*v),
             //Binary Operation
             Expression::BinOp(left, op, right) => {
-                let left = self.run_expression(*left)?;
-                let right = self.run_expression(*right)?;
+                let left = self.run_expression(left)?;
+                let right = self.run_expression(right)?;
 
                 use tk::*;
                 match (&left, &op, &right) {
@@ -138,7 +138,7 @@ impl Interpreter {
                     return Err(self.error(format!("Identifier `{name}` does not exist")));
                 }
             }
-            Expression::Assign(name, value) => self.run_assign(*name, *value)?,
+            Expression::Assign(name, value) => self.run_assign(name, value)?,
         };
         return Ok(res);
     }
@@ -174,7 +174,7 @@ impl Interpreter {
                     let mut retval = Object::Unit;
 
                     for v in f.body {
-                        if let Some(_retval) = self.run_statement(v)? {
+                        if let Some(_retval) = self.run_statement(&v)? {
                             retval = _retval;
                             break;
                         }
@@ -191,13 +191,13 @@ impl Interpreter {
         }
     }
 
-    fn run_var(&mut self, name: &String, value: Expression) -> Result<(), String> {
+    fn run_var(&mut self, name: &String, value: &Expression) -> Result<(), String> {
         let right = self.run_expression(value)?;
         self.env.insert(name.clone(), right);
         Ok(())
     }
 
-    fn run_assign(&mut self, name: Expression, value: Expression) -> Result<Object, String> {
+    fn run_assign(&mut self, name: &Expression, value: &Expression) -> Result<Object, String> {
         let new_value = self.run_expression(value)?;
 
         if let Expression::Identifier(name) = &name {

@@ -176,6 +176,8 @@ impl Parser {
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
         use tk::*;
 
+        let mut skip = true;
+
         let mut left = match self.curtok.kind {
             Integer | Float => {
                 let clone = self.curtok.clone();
@@ -190,6 +192,16 @@ impl Parser {
             String => Expression::Str(self.curtok.text.clone()),
             True => Expression::Bool(true),
             False => Expression::Bool(false),
+            Minus => {
+                self.next();
+                skip = false;
+
+                Expression::BinOp(
+                    Box::new(Expression::Number(-1.0)), 
+                    Mul, 
+                    Box::new(self.parse_expression(Precedence::Prefix)?)
+                )
+            },
             _ => {
                 dbg!(&self);
                 return Err(self.error(format!(
@@ -199,9 +211,11 @@ impl Parser {
             }
         };
 
-        self.next();
+        if skip {
+            self.next();
+        }
 
-        while !self.curtok_is(TokenKind::EOF) && precedence < Precedence::of_token(&self.curtok) {
+        while !self.curtok_is(EOF) && precedence < Precedence::of_token(&self.curtok) {
             if let Some(expression) = self.parse_postfix_expression(&left)? {
                 left = expression;
             } else if let Some(expression) = self.parse_infix_expression(&left)? {
@@ -281,6 +295,7 @@ impl Parser {
 
                     return Ok(Some(res));
                 }
+                
                 dbg!(left);
                 unreachable!();
             }
@@ -337,6 +352,7 @@ enum Precedence {
     Equals,
     Sum,
     Product,
+    Prefix,
     /// The highest precedence
     Call,
 }

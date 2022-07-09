@@ -1,14 +1,14 @@
-// Lexer/Scanner/Tokenizer
+//! Lexer/Scanner/Tokenizer
 
-use std::{vec, string::String as StdString, fmt::Display};
-use crate::token::{*, TokenKind as tk};
+use crate::token::{TokenKind as tk, *};
+use std::{fmt::Display, vec};
 
 #[derive(Debug)]
 pub struct Lexer {
     source: Vec<char>,
     tokens: Vec<Token>,
-    startidx: usize,
-    endidx: usize,
+    startidx: usize, // start index of the current token's string
+    endidx: usize,  // end index of the current token's string
     col: usize,
     ln: usize,
 }
@@ -88,7 +88,10 @@ impl Lexer {
                     self.col = 0;
                     self.ln += 1;
                 }
-                '\r' => self.col = 0,
+                '\r' => {
+                    self.col = 0;
+                    self.startidx += 1;
+                }
                 // numbers
                 '0'..='9' => self.number(),
                 // strings
@@ -100,6 +103,7 @@ impl Lexer {
         }
 
         self.add_token(EOF);
+
 
         return Ok(self.tokens.clone());
     }
@@ -113,7 +117,7 @@ impl Lexer {
             }
         }
 
-        let text: StdString = self.source[self.startidx..self.endidx].iter().collect();
+        let text: String = self.source[self.startidx..self.endidx].iter().collect();
 
         let kind = match keywords().get(&text) {
             Some(_kind) => _kind.clone(),
@@ -123,7 +127,7 @@ impl Lexer {
         self.add_token(kind);
     }
 
-    fn string(&mut self) -> Result<(), StdString> {
+    fn string(&mut self) -> Result<(), String> {
         while self.curch() != Some(&'"') && self.peek() != None {
             self.advance();
         }
@@ -134,7 +138,7 @@ impl Lexer {
                 "No closing quote for string {}",
                 self.source[self.startidx + 1..self.endidx + 1]
                     .iter()
-                    .collect::<StdString>()
+                    .collect::<String>()
             )));
         }
 
@@ -183,8 +187,9 @@ impl Lexer {
     }
 
     fn add_token(&mut self, kind: TokenKind) {
-        let text: StdString = self.source[self.startidx..self.endidx].iter().collect();
-        let len = &text.len();
+        let sub: &[char] = &self.source[self.startidx..self.endidx];
+        let len = sub.len();
+        let text: String = sub.iter().collect();
 
         self.tokens.push(Token {
             kind: kind,
@@ -194,10 +199,6 @@ impl Lexer {
         });
 
         self.startidx = self.endidx;
-    }
-
-    fn error<S: Into<StdString> + Display>(&self, text: S) -> StdString {
-        format!("(Ln {}, Col {}) {}", self.ln, self.col, text)
     }
 
     fn advance(&mut self) {
@@ -218,5 +219,10 @@ impl Lexer {
 
     fn curch(&self) -> Option<&char> {
         return self.source.get(self.endidx);
+    }
+
+    /// Formats a &str or String so that it has the current line and column number in the front
+    fn error<S: Into<String> + Display>(&self, text: S) -> String {
+        format!("(Ln {}, Col {}) {}", self.ln, self.col, text)
     }
 }

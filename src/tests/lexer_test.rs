@@ -44,3 +44,25 @@ fn combined_ops() {
     dbg!(&res);
     let it = res.iter();
 }
+
+#[test]
+fn long() {
+    let src = r#"var x  = 10
+
+    fn add(x, y) {
+      return x + y
+    }
+    
+    while x < 10 {
+      x = add(x, 2)
+      while x < 100 {
+        x = add(x, 2)
+      }
+    }
+    
+    print("here")"#;
+    let mut l = Lexer::new(src);
+    let res = l.parse();
+    dbg!(&res);
+    let it = res.iter();
+}

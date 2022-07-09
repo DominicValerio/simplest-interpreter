@@ -1,8 +1,8 @@
 // Abstract Syntax Tree
 
-use crate::token::{TokenKind, Token};
+use crate::token::{Token, TokenKind};
 
-// (statement, associated token)
+/// AstNode = (statement, associated token)
 pub type AstNode = (Statement, Token);
 pub type Program = Vec<AstNode>;
 

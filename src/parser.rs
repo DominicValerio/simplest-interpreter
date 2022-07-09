@@ -1,5 +1,7 @@
-use std::{iter::Peekable, vec::IntoIter, fmt::Display};
-use crate::{ast::*, token::*, token::TokenKind as tk};
+//! Recursive descent based parser
+
+use crate::{ast::*, token::TokenKind as tk, token::*};
+use std::{fmt::Display, iter::Peekable, vec::IntoIter};
 
 #[derive(Debug)]
 pub struct Parser {
@@ -38,10 +40,7 @@ impl Parser {
             While => program.push((self.parse_while()?, clone)),
             Lbrace => program.push((Block(self.parse_block()?), clone)),
             Semicolon | Comment => drop(self.next()),
-            _ =>
-            program.push(
-                (Expression(self.parse_expression(Precedence::Iota)?), clone)
-            )
+            _ => program.push((Expression(self.parse_expression(Precedence::Iota)?), clone)),
         }
         Ok(())
     }
@@ -193,7 +192,10 @@ impl Parser {
             False => Expression::Bool(false),
             _ => {
                 dbg!(&self);
-                return Err(self.error(format!("Expected an expression. Instead got {:?}", self.curtok.kind)));
+                return Err(self.error(format!(
+                    "Expected an expression. Instead got {:?}",
+                    self.curtok.kind
+                )));
             }
         };
 
@@ -286,7 +288,6 @@ impl Parser {
         }
     }
 
-    
     fn peek(&mut self) -> Result<Token, String> {
         if let Some(t) = self.iter.peek() {
             return Ok(t.clone());
@@ -314,7 +315,10 @@ impl Parser {
         if self.curtok.kind == kind {
             Ok(self.curtok.clone())
         } else {
-            Err(self.error( format!("Expected {:?}. Instead got {:?}", kind, self.curtok.kind)))
+            Err(self.error(format!(
+                "Expected {:?}. Instead got {:?}",
+                kind, self.curtok.kind
+            )))
         }
     }
 

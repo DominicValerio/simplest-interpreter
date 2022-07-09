@@ -1,4 +1,5 @@
-// Environment: Used to simulate variable scope
+//! The Environment is used to simulate variable scope. 
+//! The implementation is stack based and follow similar rules to javascript.
 
 use crate::object::Object;
 use std::{collections::HashMap, vec};
@@ -14,7 +15,7 @@ impl Environment {
             stack: vec![globals],
         }
     }
-    /// returns the value starting from the outermost scope (traditional method)
+    /// returns the value starting from the outermost scope or None
     pub fn get(&self, k: &String) -> Option<&Object> {
         for curmap in &self.stack {
             if let Some(v) = curmap.get(k) {
@@ -32,10 +33,10 @@ impl Environment {
         }
         return false;
     }
-    
-    /// sets the key,value pair starting from the innermost scope (traditional method)
+
+    /// sets the (key, value) pair, starting from the innermost scope
     pub fn insert(&mut self, k: String, v: Object) {
-        //find the outermost variable name, then assign that
+        // find the outermost scoped variable name, then assign that
         for i in 0..self.stack.len() {
             let dict = &self.stack[i];
             if dict.contains_key(&k) {
@@ -43,7 +44,7 @@ impl Environment {
                 return;
             }
         }
-        // assign it in the current scope
+        // if it doesn't exist, assign it in the current scope
         let len = self.stack.len();
         self.stack[len - 1].insert(k, v);
     }

@@ -1,9 +1,9 @@
 // Used to set the functions that are usable by the interpreter
-
-use crate::object::{NativeFunctionCallback, NativeFunctionDef, Object};
+#![allow(non_upper_case_globals)]
+use crate::object::{NativeFunctionCallback, NativeFunctionDef, Object, Object::*};
 use std::collections::HashMap;
 
-#[allow(non_upper_case_globals)]
+
 const print: NativeFunctionCallback = |args, i| {
     let mut output = String::default();
     for v in args.into_iter() {
@@ -12,13 +12,12 @@ const print: NativeFunctionCallback = |args, i| {
     i.stdout.push_str(&output);
     print!("{}", output);
 
-    return Object::Unit;
+    return Unit;
 };
 
-#[allow(non_upper_case_globals)]
 const println: NativeFunctionCallback = |args, i| {
     let ret = print(args, i);
-    print(vec![Object::Str("\n".to_string())], i);
+    print(vec![Str("\n".to_string())], i);
     return ret;
 };
 
@@ -28,7 +27,7 @@ pub fn get_lib() -> HashMap<String, Object> {
         .map(|(k, v)| {
             (
                 k.to_string(),
-                Object::NativeFunction(Box::from(NativeFunctionDef {
+                NativeFunction(Box::from(NativeFunctionDef {
                     name: k.to_string(),
                     callback: v,
                 })),

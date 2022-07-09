@@ -1,4 +1,4 @@
-// Simulates objects that can be used as variables
+//! Simulates objects that can be used as variables
 
 use crate::{ast::Statement, interpreter::Interpreter};
 use std::fmt::{self, Debug, Display, Formatter};

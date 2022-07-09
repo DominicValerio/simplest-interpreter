@@ -65,15 +65,27 @@ fn blocks() {
 #[test]
 fn error_tests() {
     let src = r#"
-    while 0 / 3 {
+    var x = 10
+    println(x)
 
+    fn add(x, y) {
+      return x + y
     }
+
+  while x < 10 {
+    {
+      x = add(x, 2)
+    }
+  }
+
+  print("here")
   "#;
     let mut l = Lexer::new(src);
     let toks = l.parse();
     //dbg!(&toks);
     let mut p = Parser::new(l.parse().unwrap());
     let res = p.parse().unwrap();
+
     //dbg!((&res));
     let mut i = Interpreter::new(res);
     let instant = Instant::now();

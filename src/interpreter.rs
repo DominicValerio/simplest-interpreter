@@ -1,7 +1,10 @@
-use std::{vec::IntoIter, fmt::Display};
+//! interpreter based on Abstract Syntax Tree walking
+
+use std::{fmt::Display, vec::IntoIter};
 
 use crate::{
-    ast::*, environment::Environment, object::Object::*, object::*, stdlib, token::Token, token::TokenKind as tk,
+    ast::*, environment::Environment, object::Object::*, object::*, stdlib, token::Token,
+    token::TokenKind as tk,
 };
 
 #[derive(Debug, Clone)]
@@ -135,7 +138,9 @@ impl Interpreter {
             match v {
                 Object::NativeFunction(f) => {
                     if args.len() < 1 {
-                        return Err(self.error(format!("No arguments provided to function `{name}`")));
+                        return Err(
+                            self.error(format!("No arguments provided to function `{name}`"))
+                        );
                     }
                     let retval = (f.callback)(args, self);
                     return Ok(retval);

@@ -1,7 +1,7 @@
 //! Command line interface. Takes argument of a filepath to source code.
 
 //#![allow(warnings)]
-use lib::{interpreter::*, lexer::*, parser::*};
+use lib::{interpreter::{*, self}, lexer::*, parser::*};
 use std::env::args;
 
 fn main() -> Result<(), String> {
@@ -23,12 +23,9 @@ fn main() -> Result<(), String> {
         },
     };
 
-
-    let mut l = Lexer::new(text.as_str());
-    let tokens =  l.parse()?;
-    let abstract_syntax_tree = Parser::new(tokens).parse()?;
     let now = std::time::Instant::now();
-    Interpreter::new(abstract_syntax_tree).run()?;
+
+    interpreter::run_source(text.as_str())?;
 
     if args().nth(2) == Some(String::from("--bench")) {
         println!("\n{}s", now.elapsed().as_secs_f64());

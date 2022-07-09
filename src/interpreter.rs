@@ -1,4 +1,4 @@
-//! interpreter based on Abstract Syntax Tree walking
+//! interpreter that uses Abstract Syntax Tree walking
 
 use std::{fmt::Display, vec::IntoIter};
 
@@ -13,6 +13,12 @@ pub struct Interpreter {
     ast: IntoIter<AstNode>,
     pub env: Environment,
     pub stdout: String,
+}
+
+pub fn run_source(source: &str) -> Result<(), String> {
+    use crate::{parser::Parser, lexer::Lexer};
+    Interpreter::new(Parser::new(Lexer::new(source).parse()?).parse()?).run()?;
+    Ok(())
 }
 
 impl Interpreter {

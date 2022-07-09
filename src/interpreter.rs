@@ -112,7 +112,7 @@ impl Interpreter {
                 }
             }
             Expression::Call { name, args } => {
-                let mut processed_args = Vec::new();
+                let mut processed_args = vec![];
 
                 for arg in args.into_iter() {
                     processed_args.push(self.run_expression(arg)?);
@@ -159,6 +159,8 @@ impl Interpreter {
                     for i in 0..f.params.len() {
                         self.env.insert(f.params[i].clone(), args[i].clone());
                     }
+
+                    dbg!(&self.env);
 
                     let mut retval = Object::Unit;
 

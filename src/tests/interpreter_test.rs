@@ -94,3 +94,40 @@ fn error_tests() {
 
     let time = instant.elapsed().as_secs_f64();
 }
+
+#[test]
+fn functions() {
+  let src = r#"
+  var x = 10 
+  fn add(x, y) {
+    x = 5
+    return x + y
+  }
+
+  {
+    var y = 1
+    {
+      println(add(x, 4))
+      {
+        var y = 3 
+
+        println(y)
+
+      }
+    }
+  }
+  println(x)
+
+"#;
+  let mut l = Lexer::new(src);
+  let toks = l.parse();
+  //dbg!(&toks);
+  let mut p = Parser::new(l.parse().unwrap());
+  let res = p.parse().unwrap();
+
+  //dbg!((&res));
+  let mut i = Interpreter::new(res);
+  let instant = Instant::now();
+  i.run().unwrap();
+  //dbg!(i.env);
+}

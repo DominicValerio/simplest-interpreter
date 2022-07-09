@@ -34,7 +34,7 @@ impl Environment {
         return false;
     }
 
-    /// sets the (key, value) pair, starting from the innermost scope
+    /// sets the (key, value) pair, starting from the outermost scope
     pub fn insert(&mut self, k: String, v: Object) {
         // find the outermost scoped variable name, then assign that
         for i in 0..self.stack.len() {
@@ -45,6 +45,19 @@ impl Environment {
             }
         }
         // if it doesn't exist, assign it in the current scope
+        let len = self.stack.len();
+        self.stack[len - 1].insert(k, v);
+    }
+
+    /// sets the (key, value) pair, starting from the innermost scope
+    pub fn insert_reverse(&mut self, k: String, v: Object) {
+        for i in self.stack.len()..0 {
+            let dict = &self.stack[i];
+            if dict.contains_key(&k) {
+                self.stack[i].insert(k, v);
+                return;
+            }
+        }
         let len = self.stack.len();
         self.stack[len - 1].insert(k, v);
     }

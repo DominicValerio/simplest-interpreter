@@ -208,8 +208,8 @@ impl Interpreter {
 
         if let Expression::Identifier(name) = &name {
             match self.env.contains(name) {
-                Some(index) => {
-                    self.env.insert_at(name.clone(), new_value, index);
+                Some(environment_index) => {
+                    self.env.insert_at(name.clone(), new_value, environment_index);
                     return Ok(Object::Unit);
                 }
                 None => {

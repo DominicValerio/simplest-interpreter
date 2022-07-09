@@ -51,25 +51,31 @@ impl Interpreter {
                     })),
                 );
             }
-            Statement::While { condition, body } => {
+            Statement::While { mut condition, body } => {
+                let mut ret = None;
                 self.env.enter_scope();
-                loop {
+
+                'outer: loop {
+
                     if let Object::Bool(cond) = self.run_expression(condition.clone())? {
+
                         if cond == false {
-                            self.env.exit_scope();
-                            return Ok(Option::None);
+                            break;
                         }
 
                         for v in &body {
                             if let Some(retval) = self.run_statement(v.clone())? {
-                                self.env.exit_scope();
-                                return Ok(Some(retval));
+                                ret = Some(retval);
+                                break 'outer;
                             }
                         }
+
                     } else {
                         return Err(self.error("Expression after while isn't a boolean"));
-                    }
+                    }                    
                 }
+                self.env.exit_scope();
+                return Ok(ret);
             }
             Statement::Return(expr) => {
                 return Ok(Some(self.run_expression(expr)?));
@@ -124,6 +130,7 @@ impl Interpreter {
                 if let Some(val) = self.env.get(&name) {
                     val.clone()
                 } else {
+                    dbg!(&self.env);
                     return Err(self.error(format!("Identifier `{name}` does not exist")));
                 }
             }
@@ -133,7 +140,7 @@ impl Interpreter {
     }
 
     fn run_function(&mut self, name: &String, args: Vec<Object>) -> Result<Object, String> {
-        if self.env.contains(name) {
+        if let Some(_) = self.env.contains(name) {
             let v = self.env.get(name).unwrap().clone();
             match v {
                 Object::NativeFunction(f) => {
@@ -148,7 +155,7 @@ impl Interpreter {
                 Object::Function(f) => {
                     if f.params.len() != args.len() {
                         return Err(self.error(format!(
-                            "Arguments of length {} don't match paramters of length {}",
+                            "Arguments of length {} don't match parameters of length {}",
                             args.len(),
                             f.params.len()
                         )));
@@ -159,8 +166,6 @@ impl Interpreter {
                     for i in 0..f.params.len() {
                         self.env.insert(f.params[i].clone(), args[i].clone());
                     }
-
-                    dbg!(&self.env);
 
                     let mut retval = Object::Unit;
 
@@ -192,9 +197,9 @@ impl Interpreter {
         let new_value = self.run_expression(value)?;
 
         if let Expression::Identifier(name) = &name {
-            match self.env.get(name) {
-                Some(_old_value) => {
-                    self.env.insert(name.clone(), new_value);
+            match self.env.contains(name) {
+                Some(index) => {
+                    self.env.insert_at(name.clone(), new_value, index);
                     return Ok(Object::Unit);
                 }
                 None => {

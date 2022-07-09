@@ -97,28 +97,16 @@ fn error_tests() {
 
 #[test]
 fn functions() {
-  let src = r#"
-  var x = 10 
-  fn add(x, y) {
-    x = 5
-    return x + y
-  }
-
-  {
-    var y = 1
-    {
-      println(add(x, 4))
-      {
-        var y = 3 
-
-        println(y)
-
-      }
+  let src = r"
+  var x = 1
+  while x < 10 {
+    x = x + 1
+    while x < 4 {
+      x = x + 11
     }
   }
   println(x)
-
-"#;
+";
   let mut l = Lexer::new(src);
   let toks = l.parse();
   //dbg!(&toks);
@@ -129,5 +117,4 @@ fn functions() {
   let mut i = Interpreter::new(res);
   let instant = Instant::now();
   i.run().unwrap();
-  //dbg!(i.env);
 }

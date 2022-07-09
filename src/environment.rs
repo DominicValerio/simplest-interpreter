@@ -15,9 +15,9 @@ impl Environment {
             stack: vec![globals],
         }
     }
-    /// returns the value starting from the outermost scope or None
+    /// returns the value starting from the innermost scope
     pub fn get(&self, k: &String) -> Option<&Object> {
-        for curmap in &self.stack {
+        for curmap in self.stack.iter().rev() {
             if let Some(v) = curmap.get(k) {
                 return Some(v);
             }
@@ -25,32 +25,23 @@ impl Environment {
         return None;
     }
 
-    pub fn contains(&self, k: &String) -> bool {
-        for curmap in &self.stack {
+    pub fn contains(&self, k: &String) -> Option<usize> {
+        for (i, curmap) in self.stack.iter().rev().enumerate() {
             if curmap.contains_key(k) {
-                return true;
+                return Some(self.stack.len() - 1 - i);
             }
         }
-        return false;
+        return None;
     }
 
-    /// sets the (key, value) pair, starting from the outermost scope
-    pub fn insert(&mut self, k: String, v: Object) {
-        // find the outermost scoped variable name, then assign that
-        for i in 0..self.stack.len() {
-            let dict = &self.stack[i];
-            if dict.contains_key(&k) {
-                self.stack[i].insert(k, v);
-                return;
-            }
-        }
-        // if it doesn't exist, assign it in the current scope
-        let len = self.stack.len();
-        self.stack[len - 1].insert(k, v);
+    pub fn insert_at(&mut self, k: String, v: Object, i: usize) {
+        self.stack[i].insert(k, v);
     }
+
 
     /// sets the (key, value) pair, starting from the innermost scope
-    pub fn insert_reverse(&mut self, k: String, v: Object) {
+    pub fn insert(&mut self, k: String, v: Object) {
+        // find the inner scoped variable name, then assign that
         for i in self.stack.len()..0 {
             let dict = &self.stack[i];
             if dict.contains_key(&k) {
@@ -58,6 +49,7 @@ impl Environment {
                 return;
             }
         }
+        // if it doesn't exist, assign it in the current scope
         let len = self.stack.len();
         self.stack[len - 1].insert(k, v);
     }

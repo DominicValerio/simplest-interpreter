@@ -1,7 +1,7 @@
 //! Lexer/Scanner/Tokenizer
 
 use crate::token::{TokenKind as tk, *};
-use std::{fmt::Display, vec};
+use std::{fmt::Display, vec, clone};
 
 #[derive(Debug)]
 pub struct Lexer {
@@ -110,8 +110,10 @@ impl Lexer {
 
     fn ident(&mut self) {
         while let Some(ch) = self.curch() {
+            //if ch == '\n' { self.col += 1};
             if ch.is_alphabetic() {
                 self.advance();
+                
             } else {
                 break;
             }

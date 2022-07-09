@@ -41,7 +41,7 @@ impl Display for Object {
             Bool(v) => v.to_string(),
             Number(v) => v.to_string(),
             Str(v) => v.clone(),
-            _ => unimplemented!(),
+            _ => todo!(),
         };
         write!(f, "{}", res)
     }

@@ -23,7 +23,6 @@ pub enum TokenKind {
     // math
     Plus,
     Minus,
-    Mul,
     Slash,
     Star,
 

@@ -198,7 +198,7 @@ impl Parser {
 
                 Expression::BinOp(
                     Box::new(Expression::Number(-1.0)), 
-                    Mul, 
+                    Star, 
                     Box::new(self.parse_expression(Precedence::Prefix)?)
                 )
             },
@@ -235,7 +235,7 @@ impl Parser {
     fn parse_infix_expression(&mut self, left: &Expression) -> Result<Option<Expression>, String> {
         use tk::*;
         match self.curtok.kind {
-            Slash | Mul | Minus | Plus | Equals | NotEquals | LessThan | GreaterThan
+            Slash | Star | Minus | Plus | Equals | NotEquals | LessThan | GreaterThan
             | GreaterEquals | LessEquals => {
                 let token = self.curtok.clone();
 
@@ -364,7 +364,7 @@ impl Precedence {
 
         match tok.kind {
             Lparen => prec::Call,
-            Slash | Mul => prec::Product,
+            Slash | Star => prec::Product,
             Plus | Minus => prec::Sum,
             Equals | NotEquals => prec::Equals,
             LessThan | GreaterThan | LessEquals | GreaterEquals => prec::LessThanGreaterThan,

@@ -105,10 +105,14 @@ impl Interpreter {
                 match (&left, &op, &right) {
                     (Number(l), Plus, Number(r)) => Number(l + r),
                     (Number(l), Minus, Number(r)) => Number(l - r),
-                    (Number(l), Mul, Number(r)) => Number(l * r),
+                    (Number(l), Star, Number(r)) => Number(l * r),
+                    (Number(l), Slash, Number(r)) => Number(l / r),
                     (Number(l), Equals, Number(r)) => Bool(l == r),
                     (Number(l), LessThan, Number(r)) => Bool(l < r),
+                    (Number(l), GreaterThan, Number(r)) => Bool(l > r),
+                    (Number(l), NotEquals, Number(r)) => Bool(l != r),
                     (Bool(l), Equals, Bool(r)) => Bool(l == r),
+                    (Bool(l), NotEquals, Bool(r)) => Bool(l != r),
                     _ => {
                         return Err(self.error(format!(
                             "Unsupported operation {:?} between {} and {}",

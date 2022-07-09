@@ -56,7 +56,6 @@ impl Interpreter {
                 self.env.enter_scope();
 
                 'outer: loop {
-
                     if let Object::Bool(cond) = self.run_expression(condition.clone())? {
 
                         if cond == false {

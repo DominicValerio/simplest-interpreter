@@ -2,7 +2,6 @@
 
 #![allow(warnings)]
 use lib::{interpreter::*, lexer::*, parser::*};
-use std::{env::args, process::exit};
 
 fn main() -> Result<(), String> {
     let filepath = match std::env::args().nth_back(0) {

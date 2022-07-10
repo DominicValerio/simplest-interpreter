@@ -1,4 +1,4 @@
-// Used to set the functions that are usable by the interpreter
+//! Used to set the functions that are usable by the interpreter
 #![allow(non_upper_case_globals)]
 use crate::object::{NativeFunctionCallback, NativeFunctionDef, Object, Object::*};
 use std::collections::HashMap;

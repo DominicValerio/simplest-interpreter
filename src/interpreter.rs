@@ -1,4 +1,4 @@
-//! interpreter that uses Abstract Syntax Tree walking
+//! Interpreter that uses Abstract Syntax Tree walking to run code
 
 use std::{fmt::Display, vec::IntoIter};
 
@@ -58,10 +58,9 @@ impl Interpreter {
                 );
             }
             Statement::While { condition, body } => {
-                let mut ret = None;
                 self.env.enter_scope();
 
-                'outer: loop {
+                loop {
                     if let Object::Bool(cond) = self.run_expression(condition)? {
 
                         if cond == false {
@@ -70,17 +69,16 @@ impl Interpreter {
 
                         for v in body {
                             if let Some(retval) = self.run_statement(v)? {
-                                ret = Some(retval);
-                                break 'outer;
+                                self.env.exit_scope();
+                                return Ok(Some(retval));
                             }
                         }
-
                     } else {
                         return Err(self.error("Expression after while isn't a boolean"));
                     }                    
                 }
                 self.env.exit_scope();
-                return Ok(ret);
+                return Ok(None);
             }
             Statement::Return(expr) => {
                 return Ok(Some(self.run_expression(expr)?));
@@ -93,12 +91,12 @@ impl Interpreter {
                 self.env.exit_scope();
             }
         }
-        Ok(Option::None)
+        Ok(None)
     }
 
     fn run_expression(&mut self, expression: &Expression) -> Result<Object, String> {
         let res = match expression {
-            // Literals
+            //Literals
             Expression::Number(v) => Number(*v),
             Expression::Str(v) => Str(v.clone()),
             Expression::Bool(v) => Bool(*v),
@@ -208,8 +206,8 @@ impl Interpreter {
 
         if let Expression::Identifier(name) = &name {
             match self.env.contains(name) {
-                Some(environment_index) => {
-                    self.env.insert_at(name.clone(), new_value, environment_index);
+                Some(scope_index) => {
+                    self.env.insert_at(name.clone(), new_value, scope_index);
                     return Ok(Object::Unit);
                 }
                 None => {

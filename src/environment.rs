@@ -1,5 +1,5 @@
 //! The Environment is used to simulate variable scope. 
-//! The implementation is stack based and follow similar rules to javascript.
+//! The implementation is stack based and follows similar rules to javascript.
 
 use crate::object::Object;
 use std::{collections::HashMap, vec};
@@ -34,8 +34,8 @@ impl Environment {
         return None;
     }
 
-    pub fn insert_at(&mut self, k: String, v: Object, i: usize) {
-        self.stack[i].insert(k, v);
+    pub fn insert_at(&mut self, k: String, v: Object, scope_index: usize) {
+        self.stack[scope_index].insert(k, v);
     }
 
 

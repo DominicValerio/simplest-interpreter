@@ -1,0 +1,12 @@
+fn add(x, y) {
+  return x + y
+}
+
+var x = 0
+while x < 1000000 {
+  x = add(x, 1)
+  {
+    x = x + 1
+  }
+}
+

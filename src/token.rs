@@ -20,13 +20,13 @@ pub enum TokenKind {
     //// All operators
     Assign,
 
-    // math
+    // Math Ops
     Plus,
     Minus,
     Slash,
     Star,
 
-    // boolean
+    // Boolean Ops
     Equals,
     NotEquals,
     LessThan,
@@ -41,7 +41,7 @@ pub enum TokenKind {
     Lbrace,
     Rbrace,
 
-    // puncuation
+    // seperators
     Comma,
     Semicolon,
     Dot,

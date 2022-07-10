@@ -88,7 +88,7 @@ impl Lexer {
                     self.col = 0;
                     self.ln += 1;
                 }
-                '\r' => {
+                '\r' => { // carriage return sets the cursor to the beginning of the line
                     self.col = 0;
                     self.startidx += 1;
                 }

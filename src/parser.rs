@@ -33,26 +33,79 @@ impl Parser {
         use tk::*;
         use Statement::{Block, Expression};
 
-        let clone = self.curtok.clone();
+        let matching_token = self.curtok.clone();
         match self.curtok.kind {
-            Var => program.push((self.parse_var()?, clone)),
-            Fn => program.push((self.parse_function()?, clone)),
-            While => program.push((self.parse_while()?, clone)),
-            Lbrace => program.push((Block(self.parse_block()?), clone)),
+            Var => program.push((self.parse_var()?, matching_token)),
+            Fn => program.push((self.parse_function()?, matching_token)),
+            While => program.push((self.parse_while()?, matching_token)),
+            Lbrace => program.push((Block(self.parse_block()?), matching_token)),
             Semicolon | Comment => drop(self.next()),
-            _ => program.push((Expression(self.parse_expression(Precedence::Iota)?), clone)),
+            _ => program.push((Expression(self.parse_expression(Precedence::Iota)?), matching_token)),
         }
         Ok(())
     }
 
-    fn next(&mut self) -> Option<Token> {
-        match self.iter.next() {
-            Some(v) => {
-                self.curtok = v.clone();
-                return Some(v);
+    /*
+    The first time this function is called, the precendence is the lowest.
+    Subsequent times, the precedence is replaced with the precedence of a token.
+    */
+    fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
+        use tk::*;
+
+        let mut skip = true;
+
+        let mut left = match self.curtok.kind {
+            Integer | Float => {
+                let clone = self.curtok.clone();
+                Expression::Number(clone.text.parse().unwrap())
             }
-            None => None,
+            Identifier => Expression::Identifier(self.curtok.text.clone()),
+            Lparen => {
+                self.next();
+                //TODO: probably can't have multiple paranthesis inside each otehr
+                self.parse_expression(Precedence::Iota)?
+            }
+            String => Expression::Str(self.curtok.text.clone()),
+            True => Expression::Bool(true),
+            False => Expression::Bool(false),
+            Minus => {
+                self.next();
+                skip = false;
+
+                Expression::BinOp(
+                    Box::new(Expression::Number(-1.0)), 
+                    Star, 
+                    Box::new(self.parse_expression(Precedence::Prefix)?)
+                )
+            },
+            _ => {
+                dbg!(&self);
+                return Err(self.error(format!(
+                    "Expected an expression. Instead got {:?}",
+                    self.curtok.kind
+                )));
+            }
+        };
+
+        if skip {
+            self.next();
         }
+
+        while !self.curtok_is(EOF) && precedence < Precedence::of_token(&self.curtok) {
+            if let Some(expression) = self.parse_postfix_expression(&left)? {
+                left = expression;
+            } else if let Some(expression) = self.parse_infix_expression(&left)? {
+                left = expression;
+            } else {
+                break;
+            }
+        }
+
+        if self.curtok_is(TokenKind::Semicolon) {
+            self.next();
+        }
+
+        return Ok(left);
     }
 
     fn parse_while(&mut self) -> Result<Statement, String> {
@@ -169,69 +222,6 @@ impl Parser {
         return Ok(res);
     }
 
-    /*
-    The first time this function is called, the precendence is the lowest.
-    Subsequent times, the precedence is replaced with the precedence of a token.
-    */
-    fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
-        use tk::*;
-
-        let mut skip = true;
-
-        let mut left = match self.curtok.kind {
-            Integer | Float => {
-                let clone = self.curtok.clone();
-                Expression::Number(clone.text.parse().unwrap())
-            }
-            Identifier => Expression::Identifier(self.curtok.text.clone()),
-            Lparen => {
-                self.next();
-                //TODO: probably can't have multiple paranthesis inside each otehr
-                self.parse_expression(Precedence::Iota)?
-            }
-            String => Expression::Str(self.curtok.text.clone()),
-            True => Expression::Bool(true),
-            False => Expression::Bool(false),
-            Minus => {
-                self.next();
-                skip = false;
-
-                Expression::BinOp(
-                    Box::new(Expression::Number(-1.0)), 
-                    Star, 
-                    Box::new(self.parse_expression(Precedence::Prefix)?)
-                )
-            },
-            _ => {
-                dbg!(&self);
-                return Err(self.error(format!(
-                    "Expected an expression. Instead got {:?}",
-                    self.curtok.kind
-                )));
-            }
-        };
-
-        if skip {
-            self.next();
-        }
-
-        while !self.curtok_is(EOF) && precedence < Precedence::of_token(&self.curtok) {
-            if let Some(expression) = self.parse_postfix_expression(&left)? {
-                left = expression;
-            } else if let Some(expression) = self.parse_infix_expression(&left)? {
-                left = expression;
-            } else {
-                break;
-            }
-        }
-
-        if self.curtok_is(TokenKind::Semicolon) {
-            self.next();
-        }
-
-        return Ok(left);
-    }
-
     fn parse_infix_expression(&mut self, left: &Expression) -> Result<Option<Expression>, String> {
         use tk::*;
         match self.curtok.kind {
@@ -311,6 +301,16 @@ impl Parser {
         Err(self.error("Parsed past EOF"))
     }
 
+    fn next(&mut self) -> Option<Token> {
+        match self.iter.next() {
+            Some(v) => {
+                self.curtok = v.clone();
+                return Some(v);
+            }
+            None => None,
+        }
+    }
+
     fn error<S: Into<String> + Display>(&self, text: S) -> String {
         format!("(Ln {}, Col {}) {}", self.curtok.ln, self.curtok.col, text)
     }
@@ -367,7 +367,8 @@ impl Precedence {
             Slash | Star => prec::Product,
             Plus | Minus => prec::Sum,
             Equals | NotEquals => prec::Equals,
-            LessThan | GreaterThan | LessEquals | GreaterEquals => prec::LessThanGreaterThan,
+            LessThan | GreaterThan 
+            | LessEquals | GreaterEquals => prec::LessThanGreaterThan,
             Assign => prec::Assign,
             Semicolon => prec::Statement,
             _ => prec::Iota,

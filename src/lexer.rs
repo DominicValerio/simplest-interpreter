@@ -45,6 +45,7 @@ impl Lexer {
                 ')' => self.add_token(Rparen),
                 ',' => self.add_token(Comma),
                 ';' => self.add_token(Semicolon),
+                '#' => self.comment(),
                 '=' => {
                     if self.curch_is('=') {
                         self.advance();
@@ -127,6 +128,20 @@ impl Lexer {
         };
 
         self.add_token(kind);
+    }
+
+    fn comment(&mut self) {
+        while let Some(ch) = self.peek() {
+            if *ch == '\n' {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        let text: String = self.source[self.startidx..self.endidx].iter().collect();
+
+        self.add_token(tk::Comment);
     }
 
     fn string(&mut self) -> Result<(), String> {

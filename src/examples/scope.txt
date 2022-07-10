@@ -1,0 +1,12 @@
+var x = 0
+fn add(x, y) {
+  x = 2
+  return x + y
+}
+
+# this is a scope
+{
+  var y = 2
+  x = add(x, y)
+}
+print(x) # prints 4

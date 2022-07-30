@@ -1,5 +1,6 @@
-#install application in the current directory
 # requires cargo
+
+#install application in the current directory
 install:
 	@if [ -d $(program) ]; then echo "Application already exists" & exit 1; fi
 	@echo building
@@ -9,7 +10,6 @@ install:
 	@echo Collecting $(binextension) files in $(builddir)
 	@cp $(builddir)/*$(binextension) $(program)
 	@echo done
-#@echo "$$config" > $(program)/"config.json"
 help:
 	@echo "make install: builds the project then sets up the app"
 

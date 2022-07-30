@@ -1,6 +1,5 @@
 //! Command line interface. Takes argument of a filepath to source code.
-
-use lib::interpreter;
+use runtime::interpreter;
 use std::env::args;
 
 fn main() -> Result<(), String> {

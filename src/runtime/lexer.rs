@@ -1,5 +1,4 @@
 //! Lexer/Scanner/Tokenizer
-
 use crate::token::{TokenKind as tk, *};
 use std::{fmt::Display, vec, clone};
 

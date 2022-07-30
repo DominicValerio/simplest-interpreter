@@ -1,4 +1,4 @@
-# requires cargo
+# requires cargo to run makefile script
 
 #install application in the current directory
 install:

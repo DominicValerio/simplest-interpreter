@@ -14,6 +14,11 @@ fn add(x, y) {
   x = add(x, y)
 }
 print(x) # prints 4
+
+var count = 0
+while count < 10000 {
+	count = count + 1
+}
 ```
 
 

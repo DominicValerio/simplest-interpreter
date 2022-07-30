@@ -1,6 +1,5 @@
 use crate::{interpreter::*, lexer::*, parser::*};
 
-
 #[test]
 fn prefix() {
   let src = r"

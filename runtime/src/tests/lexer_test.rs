@@ -66,3 +66,17 @@ fn long() {
     dbg!(&res);
     let it = res.iter();
 }
+
+#[test]
+fn comment() {
+    let src = r#"
+		
+		#
+		d
+		#comment
+		"#;
+    let mut l = Lexer::new(src);
+    let res = l.parse();
+    dbg!(&res);
+    let it = res.iter();
+}

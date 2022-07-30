@@ -130,17 +130,16 @@ impl Lexer {
     }
 
     fn comment(&mut self) {
-        while let Some(ch) = self.peek() {
-            if *ch == '\n' {
+        while let Some(ch) = self.curch() {
+            if *ch != '\n' {
                 self.advance();
             } else {
                 break;
             }
         }
-
-        let text: String = self.source[self.startidx..self.endidx].iter().collect();
-
+				self.startidx+=1;
         self.add_token(tk::Comment);
+				self.startidx-=1;
     }
 
     fn string(&mut self) -> Result<(), String> {

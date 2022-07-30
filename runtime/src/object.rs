@@ -3,7 +3,7 @@
 use crate::{ast::Statement, interpreter::Interpreter};
 use std::fmt::{self, Debug, Display, Formatter};
 
-pub type NativeFunctionCallback = fn(Vec<Object>, &mut Interpreter) -> Object;
+pub type NativeFunctionCallback = fn(&Vec<Object>, &mut Interpreter) -> Object;
 
 #[derive(Clone, Debug)]
 pub enum Object {

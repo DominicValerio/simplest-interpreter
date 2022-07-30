@@ -17,7 +17,7 @@ const print: NativeFunctionCallback = |args, i| {
 
 const println: NativeFunctionCallback = |args, i| {
     let ret = print(args, i);
-    print(vec![Str("\n".to_string())], i);
+    print(&vec![Str("\n".to_string())], i);
     return ret;
 };
 

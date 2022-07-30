@@ -132,7 +132,7 @@ impl Interpreter {
                     processed_args.push(self.run_expression(arg)?);
                 }
 
-                self.run_function(&name, processed_args)?
+                self.run_function(&name, &processed_args)?
             }
             Expression::Identifier(name) => {
                 if let Some(val) = self.env.get(&name) {
@@ -147,7 +147,7 @@ impl Interpreter {
         return Ok(res);
     }
 
-    fn run_function(&mut self, name: &String, args: Vec<Object>) -> Result<Object, String> {
+    fn run_function(&mut self, name: &String, args: &Vec<Object>) -> Result<Object, String> {
         if let Some(_) = self.env.contains(name) {
             let v = self.env.get(name).unwrap().clone();
             match v {

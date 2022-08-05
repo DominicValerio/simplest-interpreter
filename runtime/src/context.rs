@@ -1,17 +1,17 @@
-//! The Environment is used to simulate variable scope.
+//! The Context is used to simulate variable scope.
 //! The implementation is stack based and follows similar rules to javascript.
 
 use crate::object::Object;
 use std::{collections::HashMap, vec};
 
 #[derive(Debug, Clone)]
-pub struct Environment {
+pub struct Context {
 	stack: Vec<HashMap<String, Object>>,
 }
 
-impl Environment {
-	pub fn from(globals: HashMap<String, Object>) -> Environment {
-		Environment {
+impl Context {
+	pub fn from(globals: HashMap<String, Object>) -> Context {
+		Context {
 			stack: vec![globals],
 		}
 	}
@@ -59,6 +59,6 @@ impl Environment {
 	pub fn exit_scope(&mut self) {
 		self.stack
 			.pop()
-			.expect("Environment tried to pop an empty stack");
+			.expect("Context tried to pop an empty stack");
 	}
 }

@@ -3,7 +3,7 @@
 use std::{fmt::Display, vec::IntoIter};
 
 use crate::{
-	ast::*, environment::Environment, object::Object::*, object::*, stdlib, token::Token,
+	ast::*, context::Context, object::Object::*, object::*, stdlib, token::Token,
 	token::TokenKind as tk,
 };
 
@@ -11,7 +11,7 @@ use crate::{
 pub struct Interpreter {
 	curtok: Token,
 	ast: IntoIter<AstNode>,
-	pub env: Environment,
+	pub env: Context,
 	pub stdout: String,
 }
 
@@ -26,7 +26,7 @@ impl Interpreter {
 		Self {
 			curtok: ast[0].1.clone(),
 			ast: ast.into_iter(),
-			env: Environment::from(stdlib::get_lib()),
+			env: Context::from(stdlib::get_lib()),
 			stdout: String::new(),
 		}
 	}

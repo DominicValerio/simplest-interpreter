@@ -1,4 +1,7 @@
-Probably the simplest AST walking interpreter that still has a decent amount of features. Most of code can be found in the `runtime` folder
+A programming language interpreter made in Rust, written in an idiomatic Rust way with no dependencies outside of std. The method it uses for executing code is Abstract Syntax Tree walking. This is different from a compiler that converts human readable code into computer code. I revised the code to make it as fully featured as possible, while also keeping it simple compared to other interpreters I’ve seen. During the development process, I used unit tests on every part of the interpreter before putting it all together.
+
+
+Most of code can be found in the `runtime` folder
 
 Here's a short runnable code example:
 ```go

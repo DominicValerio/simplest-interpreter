@@ -1,6 +1,6 @@
-Probably the simplest AST walking interpreter that still has a decent amount of features.
+Probably the simplest AST walking interpreter that still has a decent amount of features. Most of code can be found in the `runtime` folder
 
-code example
+Here's a short runnable code example:
 ```go
 var x = 0
 fn add(x, y) {

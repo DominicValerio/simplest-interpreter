@@ -3,6 +3,8 @@ A programming language interpreter made in Rust, written in an idiomatic Rust wa
 
 Most of important code can be found in the `runtime` folder
 
+Runnable code examples can be found in the `examples` folder
+
 Here's a short runnable code example:
 ```go
 var x = 0
